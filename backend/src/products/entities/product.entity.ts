@@ -26,6 +26,9 @@ export class Product {
   @Column({ type: 'enum', enum: Currency, enumName: 'currency_enum' })
   currency: Currency;
 
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+
   @OneToMany(() => Image, (image) => image.product)
   images: Image[];
 

@@ -8,6 +8,7 @@ export class ProductDto {
   description: string | null;
   price: number;
   currency: Currency;
+  active: boolean;
   images: ImageDto[];
   createdAt: Date;
   updatedAt: Date;
@@ -19,6 +20,7 @@ export class ProductDto {
     dto.description = product.description;
     dto.price = Number(product.price);
     dto.currency = product.currency;
+    dto.active = product.isActive;
     dto.images = (product.images ?? []).map((image) =>
       ImageDto.fromEntity(image),
     );

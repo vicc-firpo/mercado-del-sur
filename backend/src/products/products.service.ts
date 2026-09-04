@@ -5,6 +5,7 @@ import { join } from 'path';
 import { Readable } from 'stream';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
+import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { ImageDto } from './dto/image.dto';
 import { ProductDto } from './dto/product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -38,12 +39,17 @@ export class ProductsService {
       description: dto.description,
       price: dto.price.toFixed(2),
       currency: dto.currency,
+      isActive: dto.active ?? true,
     });
     return ProductDto.fromEntity(await this.productsRepository.save(product));
   }
 
-  async findAll(): Promise<ProductDto[]> {
+  async findAll(status?: ProductStatusFilter): Promise<ProductDto[]> {
     const products = await this.productsRepository.find({
+      where:
+        status === ProductStatusFilter.ALL
+          ? {}
+          : { isActive: status !== ProductStatusFilter.INACTIVE },
       relations: { images: true },
       order: { createdAt: 'ASC' },
     });
@@ -60,6 +66,12 @@ export class ProductsService {
     product.description = dto.description;
     product.price = dto.price.toFixed(2);
     product.currency = dto.currency;
+    return ProductDto.fromEntity(await this.productsRepository.save(product));
+  }
+
+  async setActive(id: string, active: boolean): Promise<ProductDto> {
+    const product = await this.getOrFail(id);
+    product.isActive = active;
     return ProductDto.fromEntity(await this.productsRepository.save(product));
   }
 

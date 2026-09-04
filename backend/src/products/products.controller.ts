@@ -7,17 +7,21 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
+  Query,
   StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateProductDto } from './dto/create-product.dto';
+import { FindProductsQueryDto } from './dto/find-products-query.dto';
 import { ImageDto } from './dto/image.dto';
 import { ProductDto } from './dto/product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateProductStatusDto } from './dto/update-product-status.dto';
 import { InvalidImageFileException } from './exceptions/invalid-image-file.exception';
 import { MIME_TYPE_TO_EXTENSION } from './image-mime-types';
 import { ProductsService } from './products.service';
@@ -34,8 +38,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll(): Promise<ProductDto[]> {
-    return this.productsService.findAll();
+  findAll(@Query() query: FindProductsQueryDto): Promise<ProductDto[]> {
+    return this.productsService.findAll(query.status);
   }
 
   @Get(':id')
@@ -49,6 +53,14 @@ export class ProductsController {
     @Body() dto: UpdateProductDto,
   ): Promise<ProductDto> {
     return this.productsService.update(id, dto);
+  }
+
+  @Patch(':id')
+  setActive(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateProductStatusDto,
+  ): Promise<ProductDto> {
+    return this.productsService.setActive(id, dto.active);
   }
 
   @Delete(':id')

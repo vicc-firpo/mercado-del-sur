@@ -1,7 +1,9 @@
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   MaxLength,
@@ -25,4 +27,8 @@ export class CreateProductDto {
 
   @IsEnum(Currency)
   currency: Currency;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
 }
