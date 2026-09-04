@@ -54,3 +54,7 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Uploaded product images (binary uploads, not committed)
+/data/images/*
+!/data/images/.gitkeep
