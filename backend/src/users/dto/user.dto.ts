@@ -1,11 +1,12 @@
 import { User } from '../entities/user.entity';
+import { RoleName } from '../enums/role-name.enum';
 
 export class UserDto {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
+  role: RoleName;
   createdAt: Date;
   updatedAt: Date;
 

@@ -13,9 +13,17 @@ import {
   Query,
   StreamableFile,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { AuthUser } from '../auth/jwt-payload.interface';
+import { RoleName } from '../users/enums/role-name.enum';
 import { CreateProductDto } from './dto/create-product.dto';
 import { FindProductsQueryDto } from './dto/find-products-query.dto';
 import { ImageDto } from './dto/image.dto';
@@ -33,21 +41,36 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   create(@Body() dto: CreateProductDto): Promise<ProductDto> {
     return this.productsService.create(dto);
   }
 
   @Get()
-  findAll(@Query() query: FindProductsQueryDto): Promise<ProductDto[]> {
-    return this.productsService.findAll(query.status);
+  @UseGuards(OptionalJwtAuthGuard)
+  findAll(
+    @Query() query: FindProductsQueryDto,
+    @CurrentUser() user: AuthUser | undefined,
+  ): Promise<ProductDto[]> {
+    return this.productsService.findAll(
+      query.status,
+      user?.role === RoleName.ADMIN,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<ProductDto> {
-    return this.productsService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser | undefined,
+  ): Promise<ProductDto> {
+    return this.productsService.findOne(id, user?.role === RoleName.ADMIN);
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
@@ -56,6 +79,8 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   setActive(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductStatusDto,
@@ -64,12 +89,16 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   delete(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return this.productsService.delete(id);
   }
 
   @Post(':productId/images')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: MAX_IMAGE_SIZE_BYTES },
@@ -95,6 +124,8 @@ export class ProductsController {
   }
 
   @Delete(':productId/images/:imageId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(RoleName.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteImage(
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -104,13 +135,16 @@ export class ProductsController {
   }
 
   @Get(':productId/images/:imageId')
+  @UseGuards(OptionalJwtAuthGuard)
   async getImage(
     @Param('productId', ParseUUIDPipe) productId: string,
     @Param('imageId', ParseUUIDPipe) imageId: string,
+    @CurrentUser() user: AuthUser | undefined,
   ): Promise<StreamableFile> {
     const { stream, mimeType } = await this.productsService.streamImage(
       productId,
       imageId,
+      user?.role === RoleName.ADMIN,
     );
     return new StreamableFile(stream, { type: mimeType });
   }

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createReadStream, promises as fsPromises } from 'fs';
 import { join } from 'path';
@@ -44,7 +44,18 @@ export class ProductsService {
     return ProductDto.fromEntity(await this.productsRepository.save(product));
   }
 
-  async findAll(status?: ProductStatusFilter): Promise<ProductDto[]> {
+  async findAll(
+    status?: ProductStatusFilter,
+    isAdmin = false,
+  ): Promise<ProductDto[]> {
+    const wantsInactive =
+      status === ProductStatusFilter.ALL ||
+      status === ProductStatusFilter.INACTIVE;
+    if (wantsInactive && !isAdmin) {
+      throw new ForbiddenException(
+        'Admin role required to view inactive products',
+      );
+    }
     const products = await this.productsRepository.find({
       where:
         status === ProductStatusFilter.ALL
@@ -56,8 +67,12 @@ export class ProductsService {
     return products.map((product) => ProductDto.fromEntity(product));
   }
 
-  async findOne(id: string): Promise<ProductDto> {
-    return ProductDto.fromEntity(await this.getOrFail(id));
+  async findOne(id: string, isAdmin = false): Promise<ProductDto> {
+    const product = await this.getOrFail(id);
+    if (!product.isActive && !isAdmin) {
+      throw new ProductNotFoundException(id);
+    }
+    return ProductDto.fromEntity(product);
   }
 
   async update(id: string, dto: UpdateProductDto): Promise<ProductDto> {
@@ -121,8 +136,12 @@ export class ProductsService {
   async streamImage(
     productId: string,
     imageId: string,
+    isAdmin = false,
   ): Promise<{ stream: Readable; mimeType: string }> {
     const image = await this.getImageOrFail(productId, imageId);
+    if (!image.product.isActive && !isAdmin) {
+      throw new ImageNotFoundException(imageId);
+    }
     const filePath = this.getImagePath(image.id, image.extension);
     try {
       await fsPromises.access(filePath);
@@ -152,6 +171,7 @@ export class ProductsService {
   ): Promise<Image> {
     const image = await this.imagesRepository.findOne({
       where: { id: imageId, productId },
+      relations: { product: true },
     });
     if (!image) {
       throw new ImageNotFoundException(imageId);
