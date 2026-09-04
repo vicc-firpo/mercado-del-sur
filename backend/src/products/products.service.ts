@@ -35,6 +35,7 @@ export class ProductsService {
   async create(dto: CreateProductDto): Promise<ProductDto> {
     const product = this.productsRepository.create({
       name: dto.name,
+      description: dto.description,
       price: dto.price.toFixed(2),
       currency: dto.currency,
     });
@@ -56,6 +57,7 @@ export class ProductsService {
   async update(id: string, dto: UpdateProductDto): Promise<ProductDto> {
     const product = await this.getOrFail(id);
     product.name = dto.name;
+    product.description = dto.description;
     product.price = dto.price.toFixed(2);
     product.currency = dto.currency;
     return ProductDto.fromEntity(await this.productsRepository.save(product));

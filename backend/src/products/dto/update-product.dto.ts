@@ -14,6 +14,11 @@ export class UpdateProductDto {
   @MaxLength(255)
   name: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2000)
+  description: string;
+
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   price: number;
