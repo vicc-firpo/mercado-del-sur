@@ -5,7 +5,7 @@ export class UserDto {
   firstName: string;
   lastName: string;
   email: string;
-  roles: string[];
+  role: string;
   createdAt: Date;
   updatedAt: Date;
 
@@ -15,7 +15,7 @@ export class UserDto {
     dto.firstName = user.firstName;
     dto.lastName = user.lastName;
     dto.email = user.email;
-    dto.roles = (user.roles ?? []).map((role) => role.name);
+    dto.role = user.role;
     dto.createdAt = user.createdAt;
     dto.updatedAt = user.updatedAt;
     return dto;

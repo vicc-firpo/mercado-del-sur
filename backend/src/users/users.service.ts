@@ -4,7 +4,7 @@ import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
-import { Role, RoleName } from './entities/role.entity';
+import { RoleName } from './enums/role-name.enum';
 import { User } from './entities/user.entity';
 import { EmailAlreadyInUseException } from './exceptions/email-already-in-use.exception';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
@@ -16,20 +16,15 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-    @InjectRepository(Role)
-    private readonly rolesRepository: Repository<Role>,
   ) {}
 
   async create(dto: CreateUserDto, passwordHash: string): Promise<UserDto> {
-    const customerRole = await this.rolesRepository.findOneByOrFail({
-      name: RoleName.CUSTOMER,
-    });
     const user = this.usersRepository.create({
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,
       password: passwordHash,
-      roles: [customerRole],
+      role: RoleName.CUSTOMER,
     });
     return UserDto.fromEntity(await this.save(user));
   }
@@ -37,7 +32,6 @@ export class UsersService {
   findByEmail(email: string): Promise<User | null> {
     return this.usersRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.roles', 'roles')
       .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne();

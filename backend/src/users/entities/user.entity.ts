@@ -2,12 +2,10 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Role } from './role.entity';
+import { RoleName } from '../enums/role-name.enum';
 
 @Entity('users')
 export class User {
@@ -26,13 +24,13 @@ export class User {
   @Column({ select: false })
   password: string;
 
-  @ManyToMany(() => Role, { eager: true })
-  @JoinTable({
-    name: 'user_roles',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+  @Column({
+    type: 'enum',
+    enum: RoleName,
+    enumName: 'role_enum',
+    default: RoleName.CUSTOMER,
   })
-  roles: Role[];
+  role: RoleName;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
