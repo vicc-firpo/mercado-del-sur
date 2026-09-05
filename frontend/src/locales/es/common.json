@@ -1,0 +1,27 @@
+{
+  "appName": "Mercado del Sur",
+  "unexpectedError": "Ocurrió un error inesperado. Si el problema persiste, contactá a soporte.",
+  "successTitle": "Operación exitosa",
+  "errorTitle": "Operación fallida",
+  "loading": "Cargando...",
+  "retry": "Reintentar",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "delete": "Eliminar",
+  "edit": "Modificar",
+  "view": "Ver",
+  "back": "Volver",
+  "backToStore": "Volver a la tienda",
+  "goHome": "Volver al inicio",
+  "notFoundTitle": "Página no encontrada",
+  "notFoundText": "La página que buscás no existe.",
+  "nav": {
+    "cart": "Carrito",
+    "orders": "Mis órdenes",
+    "account": "Cuenta",
+    "adminPanel": "Panel admin",
+    "login": "Ingresar",
+    "logout": "Cerrar sesión"
+  }
+}

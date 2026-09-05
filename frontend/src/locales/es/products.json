@@ -1,0 +1,11 @@
+{
+  "name": "Nombre",
+  "description": "Descripción",
+  "price": "Precio",
+  "status": "Estado",
+  "active": "Activo",
+  "inactive": "Inactivo",
+  "images": "Imágenes",
+  "detailPending": "Producto {{id}} — pendiente.",
+  "detailTitle": "Detalle de producto"
+}

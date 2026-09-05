@@ -1,0 +1,11 @@
+{
+  "title": "Carrito",
+  "empty": "Tu carrito está vacío.",
+  "quantity": "Cantidad",
+  "subtotal": "Subtotal",
+  "total": "Total",
+  "remove": "Quitar",
+  "checkout": "Finalizar compra",
+  "checkoutSuccess": "¡Compra realizada con éxito!",
+  "checkoutError": "No se pudo finalizar la compra."
+}

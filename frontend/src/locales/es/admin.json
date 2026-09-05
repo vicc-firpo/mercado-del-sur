@@ -1,0 +1,20 @@
+{
+  "panelTitle": "Mercado del Sur · Admin",
+  "nav": {
+    "products": "Productos",
+    "users": "Usuarios"
+  },
+  "products": {
+    "title": "Productos",
+    "new": "Nuevo producto",
+    "createSuccess": "Producto creado.",
+    "updateSuccess": "Producto actualizado.",
+    "deleteSuccess": "Producto eliminado."
+  },
+  "users": {
+    "title": "Usuarios",
+    "role": "Rol",
+    "updateSuccess": "Usuario actualizado.",
+    "deleteSuccess": "Usuario eliminado."
+  }
+}

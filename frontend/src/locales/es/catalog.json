@@ -1,0 +1,9 @@
+{
+  "title": "Catálogo",
+  "empty": "No hay productos disponibles.",
+  "loadError": "No se pudo cargar el catálogo.",
+  "productCount_one": "{{count}} producto",
+  "productCount_other": "{{count}} productos",
+  "addToCart": "Agregar al carrito",
+  "outOfStock": "Sin stock"
+}

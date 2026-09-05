@@ -1,0 +1,11 @@
+{
+  "title": "Mis órdenes",
+  "empty": "Todavía no realizaste ninguna orden.",
+  "orderNumber": "Orden #{{id}}",
+  "date": "Fecha",
+  "total": "Total",
+  "itemCount_one": "{{count}} artículo",
+  "itemCount_other": "{{count}} artículos",
+  "detailTitle": "Detalle de orden",
+  "detailPending": "Orden {{id}} — pendiente."
+}
