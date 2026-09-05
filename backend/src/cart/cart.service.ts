@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { OrderDetailDto } from '../orders/dto/order-detail.dto';
+import { OrdersService } from '../orders/orders.service';
 import { Product } from '../products/entities/product.entity';
 import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
 import { CartItemDto } from './dto/cart-item.dto';
@@ -8,6 +10,7 @@ import { CartDto } from './dto/cart.dto';
 import { CartItem } from './entities/cart-item.entity';
 import { Cart } from './entities/cart.entity';
 import { CartItemNotFoundException } from './exceptions/cart-item-not-found.exception';
+import { EmptyCartException } from './exceptions/empty-cart.exception';
 
 @Injectable()
 export class CartService {
@@ -18,6 +21,7 @@ export class CartService {
     private readonly cartItemsRepository: Repository<CartItem>,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async createCartForUser(userId: string): Promise<Cart> {
@@ -64,10 +68,15 @@ export class CartService {
     }
   }
 
-  async checkout(userId: string): Promise<void> {
+  async checkout(userId: string): Promise<OrderDetailDto> {
     const cart = await this.getCartOrFail(userId);
+    if (!cart.items?.length) {
+      throw new EmptyCartException();
+    }
     this.processPayment();
+    const order = await this.ordersService.createOrder(userId, cart.items);
     await this.cartItemsRepository.delete({ cartId: cart.id });
+    return OrderDetailDto.fromEntity(order);
   }
 
   private async getCartOrFail(userId: string): Promise<Cart> {

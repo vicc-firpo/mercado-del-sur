@@ -14,6 +14,7 @@ import {
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthUser } from '../auth/jwt-payload.interface';
+import { OrderDetailDto } from '../orders/dto/order-detail.dto';
 import { CartService } from './cart.service';
 import { CartItemDto } from './dto/cart-item.dto';
 import { CartDto } from './dto/cart.dto';
@@ -48,8 +49,7 @@ export class CartController {
   }
 
   @Post('checkout')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  checkout(@CurrentUser() user: AuthUser): Promise<void> {
+  checkout(@CurrentUser() user: AuthUser): Promise<OrderDetailDto> {
     return this.cartService.checkout(user.userId);
   }
 }

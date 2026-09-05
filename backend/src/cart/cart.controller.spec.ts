@@ -79,12 +79,19 @@ describe('CartController', () => {
     expect(cartService.removeItem).toHaveBeenCalledWith(user.userId, productId);
   });
 
-  it('checkout delegates to the service with the current user id', async () => {
+  it('checkout delegates to the service and returns the created order detail', async () => {
     const user = buildAuthUser();
-    cartService.checkout.mockResolvedValue(undefined);
+    const orderDetail = {
+      id: faker.string.uuid(),
+      total: 20,
+      createdAt: new Date(),
+      items: [],
+    };
+    cartService.checkout.mockResolvedValue(orderDetail);
 
-    await controller.checkout(user);
+    const result = await controller.checkout(user);
 
     expect(cartService.checkout).toHaveBeenCalledWith(user.userId);
+    expect(result).toBe(orderDetail);
   });
 });
