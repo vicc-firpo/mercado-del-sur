@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
+import { CartService } from '../cart/cart.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
@@ -16,6 +17,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly cartService: CartService,
   ) {}
 
   async create(dto: CreateUserDto, passwordHash: string): Promise<UserDto> {
@@ -26,7 +28,9 @@ export class UsersService {
       password: passwordHash,
       role: RoleName.CUSTOMER,
     });
-    return UserDto.fromEntity(await this.save(user));
+    const saved = await this.save(user);
+    await this.cartService.createCartForUser(saved.id);
+    return UserDto.fromEntity(saved);
   }
 
   findByEmail(email: string): Promise<User | null> {

@@ -9,6 +9,7 @@ jest.mock('@nestjs/typeorm', () => ({
   getRepositoryToken: (entity: InjectionToken) => entity,
 }));
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { CartService } from '../cart/cart.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RoleName } from './enums/role-name.enum';
@@ -38,6 +39,7 @@ type MockedUserRepository = {
 describe('UsersService', () => {
   let service: UsersService;
   let repository: MockedUserRepository;
+  let cartService: { createCartForUser: jest.Mock };
   let queryBuilder: {
     addSelect: jest.Mock;
     where: jest.Mock;
@@ -66,11 +68,16 @@ describe('UsersService', () => {
             createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
           },
         },
+        {
+          provide: CartService,
+          useValue: { createCartForUser: jest.fn() },
+        },
       ],
     }).compile();
 
     service = module.get(UsersService);
     repository = module.get<MockedUserRepository>(getRepositoryToken(User));
+    cartService = module.get(CartService);
   });
 
   afterEach(() => {
@@ -99,6 +106,7 @@ describe('UsersService', () => {
         role: RoleName.CUSTOMER,
       });
       expect(repository.save).toHaveBeenCalledWith(created);
+      expect(cartService.createCartForUser).toHaveBeenCalledWith(created.id);
       expect(result).toEqual({
         id: created.id,
         firstName: created.firstName,
@@ -123,6 +131,7 @@ describe('UsersService', () => {
       await expect(
         service.create(dto, faker.internet.password()),
       ).rejects.toThrow(EmailAlreadyInUseException);
+      expect(cartService.createCartForUser).not.toHaveBeenCalled();
     });
   });
 

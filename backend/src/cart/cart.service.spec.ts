@@ -1,0 +1,236 @@
+import { Inject, InjectionToken } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { faker } from '@faker-js/faker';
+import { buildCartItem } from '../test/factories/cart-item.factory';
+import { buildCart } from '../test/factories/cart.factory';
+import { buildProduct } from '../test/factories/product.factory';
+
+jest.mock('@nestjs/typeorm', () => ({
+  InjectRepository: (entity: InjectionToken) => Inject(entity),
+  getRepositoryToken: (entity: InjectionToken) => entity,
+}));
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { CartService } from './cart.service';
+import { CartItem } from './entities/cart-item.entity';
+import { Cart } from './entities/cart.entity';
+import { CartItemNotFoundException } from './exceptions/cart-item-not-found.exception';
+import { Product } from '../products/entities/product.entity';
+import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
+
+type MockedCartsRepository = {
+  create: jest.Mock;
+  save: jest.Mock;
+  findOne: jest.Mock;
+};
+
+type MockedCartItemsRepository = {
+  findOne: jest.Mock;
+  delete: jest.Mock;
+  createQueryBuilder: jest.Mock;
+};
+
+type MockedProductsRepository = {
+  findOne: jest.Mock;
+};
+
+describe('CartService', () => {
+  let service: CartService;
+  let cartsRepository: MockedCartsRepository;
+  let cartItemsRepository: MockedCartItemsRepository;
+  let productsRepository: MockedProductsRepository;
+  let insertQueryBuilder: {
+    insert: jest.Mock;
+    into: jest.Mock;
+    values: jest.Mock;
+    orUpdate: jest.Mock;
+    execute: jest.Mock;
+  };
+
+  beforeEach(async () => {
+    insertQueryBuilder = {
+      insert: jest.fn().mockReturnThis(),
+      into: jest.fn().mockReturnThis(),
+      values: jest.fn().mockReturnThis(),
+      orUpdate: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CartService,
+        {
+          provide: getRepositoryToken(Cart),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(CartItem),
+          useValue: {
+            findOne: jest.fn(),
+            delete: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue(insertQueryBuilder),
+          },
+        },
+        {
+          provide: getRepositoryToken(Product),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get(CartService);
+    cartsRepository = module.get<MockedCartsRepository>(
+      getRepositoryToken(Cart),
+    );
+    cartItemsRepository = module.get<MockedCartItemsRepository>(
+      getRepositoryToken(CartItem),
+    );
+    productsRepository = module.get<MockedProductsRepository>(
+      getRepositoryToken(Product),
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('createCartForUser', () => {
+    it('creates and saves a cart for the given user', async () => {
+      const userId = faker.string.uuid();
+      const created = buildCart({ userId });
+      cartsRepository.create.mockReturnValue(created);
+      cartsRepository.save.mockResolvedValue(created);
+
+      const result = await service.createCartForUser(userId);
+
+      expect(cartsRepository.create).toHaveBeenCalledWith({ userId });
+      expect(cartsRepository.save).toHaveBeenCalledWith(created);
+      expect(result).toBe(created);
+    });
+  });
+
+  describe('getCart', () => {
+    it('returns an empty cart dto when there are no items', async () => {
+      const cart = buildCart({ items: [] });
+      cartsRepository.findOne.mockResolvedValue(cart);
+
+      const result = await service.getCart(cart.userId);
+
+      expect(result).toEqual({ items: [], total: 0 });
+    });
+
+    it('returns items with subtotals and the overall total', async () => {
+      const product = buildProduct({ price: '10.00' });
+      const item = buildCartItem({
+        product,
+        productId: product.id,
+        quantity: 3,
+      });
+      const cart = buildCart({ items: [item] });
+      cartsRepository.findOne.mockResolvedValue(cart);
+
+      const result = await service.getCart(cart.userId);
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].subtotal).toBe(30);
+      expect(result.total).toBe(30);
+    });
+
+    it('throws when the user has no cart', async () => {
+      cartsRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getCart(faker.string.uuid())).rejects.toThrow();
+    });
+  });
+
+  describe('addItem', () => {
+    it('throws ProductNotFoundException when the product does not exist', async () => {
+      productsRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.addItem(faker.string.uuid(), faker.string.uuid(), 2),
+      ).rejects.toThrow(ProductNotFoundException);
+      expect(cartItemsRepository.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('upserts the item quantity via an atomic insert-or-update', async () => {
+      const product = buildProduct();
+      const cart = buildCart();
+      const savedItem = buildCartItem({
+        cartId: cart.id,
+        product,
+        productId: product.id,
+        quantity: 4,
+      });
+      productsRepository.findOne.mockResolvedValue(product);
+      cartsRepository.findOne.mockResolvedValue(cart);
+      cartItemsRepository.findOne.mockResolvedValue(savedItem);
+
+      const result = await service.addItem(cart.userId, product.id, 4);
+
+      expect(insertQueryBuilder.values).toHaveBeenCalledWith({
+        cartId: cart.id,
+        productId: product.id,
+        quantity: 4,
+      });
+      expect(insertQueryBuilder.orUpdate).toHaveBeenCalledWith(
+        ['quantity'],
+        ['cart_id', 'product_id'],
+      );
+      expect(result.quantity).toBe(4);
+    });
+  });
+
+  describe('removeItem', () => {
+    it('deletes the item when it exists', async () => {
+      const cart = buildCart();
+      const productId = faker.string.uuid();
+      cartsRepository.findOne.mockResolvedValue(cart);
+      cartItemsRepository.delete.mockResolvedValue({ affected: 1 });
+
+      await service.removeItem(cart.userId, productId);
+
+      expect(cartItemsRepository.delete).toHaveBeenCalledWith({
+        cartId: cart.id,
+        productId,
+      });
+    });
+
+    it('throws CartItemNotFoundException when no rows are affected', async () => {
+      const cart = buildCart();
+      cartsRepository.findOne.mockResolvedValue(cart);
+      cartItemsRepository.delete.mockResolvedValue({ affected: 0 });
+
+      await expect(
+        service.removeItem(cart.userId, faker.string.uuid()),
+      ).rejects.toThrow(CartItemNotFoundException);
+    });
+  });
+
+  describe('checkout', () => {
+    it('deletes all items belonging to the cart', async () => {
+      const cart = buildCart();
+      cartsRepository.findOne.mockResolvedValue(cart);
+      cartItemsRepository.delete.mockResolvedValue({ affected: 2 });
+
+      await service.checkout(cart.userId);
+
+      expect(cartItemsRepository.delete).toHaveBeenCalledWith({
+        cartId: cart.id,
+      });
+    });
+
+    it('is a no-op for an already empty cart', async () => {
+      const cart = buildCart({ items: [] });
+      cartsRepository.findOne.mockResolvedValue(cart);
+      cartItemsRepository.delete.mockResolvedValue({ affected: 0 });
+
+      await expect(service.checkout(cart.userId)).resolves.toBeUndefined();
+    });
+  });
+});
