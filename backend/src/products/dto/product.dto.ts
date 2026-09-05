@@ -1,5 +1,4 @@
 import { Product } from '../entities/product.entity';
-import { Currency } from '../enums/currency.enum';
 import { ImageDto } from './image.dto';
 
 export class ProductDto {
@@ -7,7 +6,6 @@ export class ProductDto {
   name: string;
   description: string | null;
   price: number;
-  currency: Currency;
   active: boolean;
   images: ImageDto[];
   createdAt: Date;
@@ -19,7 +17,6 @@ export class ProductDto {
     dto.name = product.name;
     dto.description = product.description;
     dto.price = Number(product.price);
-    dto.currency = product.currency;
     dto.active = product.isActive;
     dto.images = (product.images ?? []).map((image) =>
       ImageDto.fromEntity(image),

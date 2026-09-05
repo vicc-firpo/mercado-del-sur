@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Currency } from '../enums/currency.enum';
 import { Image } from './image.entity';
 
 @Entity('products')
@@ -22,9 +21,6 @@ export class Product {
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   price: string;
-
-  @Column({ type: 'enum', enum: Currency, enumName: 'currency_enum' })
-  currency: Currency;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;

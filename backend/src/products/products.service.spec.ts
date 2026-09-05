@@ -27,7 +27,6 @@ import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Image } from './entities/image.entity';
 import { Product } from './entities/product.entity';
-import { Currency } from './enums/currency.enum';
 import { ImageNotFoundException } from './exceptions/image-not-found.exception';
 import { InvalidImageFileException } from './exceptions/invalid-image-file.exception';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
@@ -98,13 +97,11 @@ describe('ProductsService', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 19.9,
-        currency: Currency.USD,
       };
       const created = buildProduct({
         name: dto.name,
         description: dto.description,
         price: '19.90',
-        currency: dto.currency,
         isActive: true,
       });
       productsRepository.create.mockReturnValue(created);
@@ -116,7 +113,6 @@ describe('ProductsService', () => {
         name: dto.name,
         description: dto.description,
         price: '19.90',
-        currency: dto.currency,
         isActive: true,
       });
       expect(productsRepository.save).toHaveBeenCalledWith(created);
@@ -130,7 +126,6 @@ describe('ProductsService', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 5,
-        currency: Currency.UYU,
         active: false,
       };
       const created = buildProduct({ isActive: false });
@@ -240,7 +235,6 @@ describe('ProductsService', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 42,
-        currency: Currency.UYU,
       };
       productsRepository.findOne.mockResolvedValue(product);
       productsRepository.save.mockImplementation((p) => Promise.resolve(p));
@@ -252,12 +246,9 @@ describe('ProductsService', () => {
           name: dto.name,
           description: dto.description,
           price: '42.00',
-          currency: dto.currency,
         }),
       );
-      expect(result).toEqual(
-        expect.objectContaining({ name: dto.name, currency: dto.currency }),
-      );
+      expect(result).toEqual(expect.objectContaining({ name: dto.name }));
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
@@ -266,7 +257,6 @@ describe('ProductsService', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 10,
-        currency: Currency.USD,
       };
 
       await expect(service.update(faker.string.uuid(), dto)).rejects.toThrow(

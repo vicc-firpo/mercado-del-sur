@@ -1,12 +1,10 @@
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
   MaxLength,
 } from 'class-validator';
-import { Currency } from '../enums/currency.enum';
 
 export class UpdateProductDto {
   @IsString()
@@ -22,7 +20,4 @@ export class UpdateProductDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   price: number;
-
-  @IsEnum(Currency)
-  currency: Currency;
 }

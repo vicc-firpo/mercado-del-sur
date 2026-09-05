@@ -15,7 +15,6 @@ import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { ProductDto } from './dto/product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateProductStatusDto } from './dto/update-product-status.dto';
-import { Currency } from './enums/currency.enum';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 
@@ -70,7 +69,6 @@ describe('ProductsController', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 10,
-        currency: Currency.USD,
       };
       const created = ProductDto.fromEntity(buildProduct());
       productsService.create.mockResolvedValue(created);
@@ -147,7 +145,6 @@ describe('ProductsController', () => {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: 20,
-        currency: Currency.UYU,
       };
       const updated = ProductDto.fromEntity(buildProduct({ id }));
       productsService.update.mockResolvedValue(updated);

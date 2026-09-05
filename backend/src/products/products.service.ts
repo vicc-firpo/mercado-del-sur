@@ -38,7 +38,6 @@ export class ProductsService {
       name: dto.name,
       description: dto.description,
       price: dto.price.toFixed(2),
-      currency: dto.currency,
       isActive: dto.active ?? true,
     });
     return ProductDto.fromEntity(await this.productsRepository.save(product));
@@ -80,7 +79,6 @@ export class ProductsService {
     product.name = dto.name;
     product.description = dto.description;
     product.price = dto.price.toFixed(2);
-    product.currency = dto.currency;
     return ProductDto.fromEntity(await this.productsRepository.save(product));
   }
 
