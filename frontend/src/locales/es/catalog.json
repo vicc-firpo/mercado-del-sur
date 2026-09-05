@@ -2,8 +2,30 @@
   "title": "Catálogo",
   "empty": "No hay productos disponibles.",
   "loadError": "No se pudo cargar el catálogo.",
-  "productCount_one": "{{count}} producto",
-  "productCount_other": "{{count}} productos",
+  "productCount_one": "{{count}} producto disponible",
+  "productCount_other": "{{count}} productos disponibles",
   "addToCart": "Agregar al carrito",
-  "outOfStock": "Sin stock"
+  "outOfStock": "Sin stock",
+  "sectionTitle": "Catálogo de Productos",
+  "searchPlaceholder": "Buscar en el catálogo de productos (cerámica, textiles, iluminación)…",
+  "viewDetail": "Ver detalle",
+  "promo": {
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "slide1": {
+      "eyebrow": "Envíos a todo el país",
+      "title": "Llevamos tu compra a cualquier rincón del Uruguay",
+      "text": "Envío sin cargo en compras superiores a $ 3.000. Preparamos cada pedido a mano y lo despachamos en 24 a 48 horas."
+    },
+    "slide2": {
+      "eyebrow": "Hecho por manos uruguayas",
+      "title": "Piezas de talleres locales, en producciones cortas",
+      "text": "Trabajamos con ceramistas, carpinteros y tejedoras del país. Series limitadas, materiales nobles y terminaciones cuidadas."
+    },
+    "slide3": {
+      "eyebrow": "Nueva colección de temporada",
+      "title": "Renová tu casa con lo esencial",
+      "text": "Textiles de fibras naturales, cerámica esmaltada y objetos de madera pensados para durar años y acompañar tu día a día."
+    }
+  }
 }

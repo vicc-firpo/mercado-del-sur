@@ -23,5 +23,32 @@
     "adminPanel": "Panel admin",
     "login": "Ingresar",
     "logout": "Cerrar sesión"
+  },
+  "footer": {
+    "tagline": "Objetos de autor para la casa, hechos por talleres del Uruguay.",
+    "shop": {
+      "title": "Tienda",
+      "catalog": "Catálogo completo",
+      "new": "Novedades",
+      "bestSellers": "Más vendidos",
+      "giftCards": "Gift cards"
+    },
+    "help": {
+      "title": "Ayuda",
+      "shipping": "Envíos y entregas",
+      "returns": "Cambios y devoluciones",
+      "faq": "Preguntas frecuentes",
+      "contact": "Contacto"
+    },
+    "contact": {
+      "title": "Contacto",
+      "address": "Bvar. Artigas 1234, Montevideo",
+      "phone": "(+598) 2707 0000",
+      "email": "hola@mercadodelsur.com",
+      "hours": "Lunes a viernes de 10 a 19 h"
+    },
+    "rights": "© {{year}} Mercado del Sur. Todos los derechos reservados.",
+    "terms": "Términos y condiciones",
+    "privacy": "Política de privacidad"
   }
 }

@@ -1,16 +1,29 @@
 import { createTheme, type MantineColorsTuple } from '@mantine/core'
 
 const primary: MantineColorsTuple = [
-  '#f7f3f2',
-  '#e8e6e5',
-  '#d2c9c6',
-  '#bdaaa4',
-  '#ab9087',
-  '#a17f74',
-  '#9d766a',
-  '#896459',
-  '#7b594e',
-  '#5d4037',
+  '#f6f3f2',
+  '#e4dcd9',
+  '#ccbbb2',
+  '#b4998b',
+  '#a07d6b',
+  '#946c58',
+  '#8f654f',
+  '#79523f',
+  '#5f4032',
+  '#37221a',
+]
+
+const secondary: MantineColorsTuple = [
+  '#eef4ee',
+  '#dde8de',
+  '#b7d1ba',
+  '#8fb994',
+  '#6da372',
+  '#57955d',
+  '#498f51',
+  '#387b41',
+  '#2e6d38',
+  '#1f5e2b',
 ]
 
 const gray: MantineColorsTuple = [
@@ -32,6 +45,7 @@ const FONT_FAMILY =
 export const theme = createTheme({
   colors: {
     primary,
+    secondary,
     gray,
   },
   white: '#f5f5f5',
