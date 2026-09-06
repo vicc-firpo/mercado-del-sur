@@ -70,7 +70,7 @@ export default function RegisterPage() {
       footer={
         <>
           {t('haveAccount')}{' '}
-          <Anchor component={Link} to={ROUTES.LOGIN}>
+          <Anchor component={Link} to={ROUTES.LOGIN} c="blue">
             {t('logIn')}
           </Anchor>
         </>

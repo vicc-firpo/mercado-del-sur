@@ -60,7 +60,7 @@ export default function LoginPage() {
       footer={
         <>
           {t('noAccount')}{' '}
-          <Anchor component={Link} to={ROUTES.REGISTER}>
+          <Anchor component={Link} to={ROUTES.REGISTER} c="blue">
             {t('register')}
           </Anchor>
         </>

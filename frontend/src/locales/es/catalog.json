@@ -9,6 +9,21 @@
   "sectionTitle": "Catálogo de Productos",
   "searchPlaceholder": "Buscar en el catálogo de productos (cerámica, textiles, iluminación)…",
   "viewDetail": "Ver detalle",
+  "workshopPrice": "PRECIO TALLER",
+  "highlights": {
+    "item1": {
+      "title": "Origen Trazable",
+      "text": "Conocé el nombre y ubicación del taller que dio forma a cada objeto de tu hogar."
+    },
+    "item2": {
+      "title": "Maderas y Fibras Certificadas",
+      "text": "Eucalipto, paraíso y lanas seleccionadas por su sostenibilidad y nobleza de textura."
+    },
+    "item3": {
+      "title": "Garantía Artesanal",
+      "text": "Piezas concebidas para durar generaciones con servicio de retapizado y mantenimiento."
+    }
+  },
   "promo": {
     "prev": "Anterior",
     "next": "Siguiente",

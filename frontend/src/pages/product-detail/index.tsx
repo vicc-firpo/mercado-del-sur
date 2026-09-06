@@ -113,7 +113,13 @@ export default function ProductDetailPage() {
   return (
     <Container size="xl" py="md">
       <Stack gap="lg">
-        <Anchor component={Link} to={ROUTES.CATALOG} size="sm" underline="never">
+        <Anchor
+          component={Link}
+          to={ROUTES.CATALOG}
+          size="sm"
+          c="blue"
+          underline="never"
+        >
           <Group gap={4} wrap="nowrap">
             <IconArrowLeft size={14} />
             {t('backToCatalog')}

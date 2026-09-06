@@ -1,6 +1,7 @@
 import { CatalogSearch } from '@/components/catalog-search/CatalogSearch'
 import { ProductGrid } from '@/components/product-grid/ProductGrid'
 import { PromoCarousel } from '@/components/promo-carousel/PromoCarousel'
+import { TrustHighlights } from '@/components/trust-highlights/TrustHighlights'
 import { getApiErrorMessage } from '@/helpers/get-api-error'
 import { useGetProductsQuery } from '@/store'
 import { Alert, Container, Stack, Title } from '@mantine/core'
@@ -28,6 +29,8 @@ export default function CatalogPage() {
             <ProductGrid products={products} loading={isLoading} />
           )}
         </Stack>
+
+        <TrustHighlights />
       </Stack>
     </Container>
   )

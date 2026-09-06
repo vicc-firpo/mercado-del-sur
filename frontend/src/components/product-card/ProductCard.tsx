@@ -2,7 +2,7 @@ import { ProductThumbnail } from '@/components/product-card/ProductThumbnail'
 import { buildPath, ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/helpers/format-price'
 import type { Product } from '@/types/products/product'
-import { Anchor, Card, Group, Stack, Text } from '@mantine/core'
+import { Anchor, Card, Divider, Group, Stack, Text } from '@mantine/core'
 import { IconArrowRight } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -26,14 +26,7 @@ export function ProductCard({ product }: { product: Product }) {
       </Card.Section>
 
       <Stack gap={4} mt="md" style={{ flex: 1 }}>
-        <Text
-          component={Link}
-          to={detailPath}
-          fw={600}
-          c="black"
-          lineClamp={1}
-          style={{ textDecoration: 'none' }}
-        >
+        <Text fw={600} c="black" lineClamp={1}>
           {product.name}
         </Text>
 
@@ -41,20 +34,28 @@ export function ProductCard({ product }: { product: Product }) {
           size="sm"
           c="dimmed"
           lineClamp={2}
+          mb="md"
           style={{ minHeight: DESCRIPTION_MIN_HEIGHT }}
         >
           {product.description ?? ''}
         </Text>
 
-        <Group
-          justify="space-between"
-          align="center"
-          mt="auto"
-          pt="sm"
-          wrap="nowrap"
-        >
-          <Text fw={700}>{formatPrice(product.price)}</Text>
-          <Anchor component={Link} to={detailPath} size="sm" underline="never">
+        <Divider mt="auto" />
+
+        <Group justify="space-between" align="flex-end" pt="sm" wrap="nowrap">
+          <Stack gap={0}>
+            <Text size="xs" c="dimmed">
+              {t('workshopPrice')}
+            </Text>
+            <Text fw={700}>{formatPrice(product.price)}</Text>
+          </Stack>
+          <Anchor
+            component={Link}
+            to={detailPath}
+            size="sm"
+            c="blue"
+            underline="never"
+          >
             <Group gap={4} wrap="nowrap">
               {t('viewDetail')}
               <IconArrowRight size={14} />

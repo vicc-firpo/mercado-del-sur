@@ -8,7 +8,7 @@ export function ProductThumbnail({
   height = 200,
 }: {
   product: Product
-  height?: number
+  height?: number | string
 }) {
   const url = firstImageUrl(product)
 
@@ -20,5 +20,5 @@ export function ProductThumbnail({
     )
   }
 
-  return <Image src={url} h={height} alt={product.name} fit="cover" />
+  return <Image src={url} h={height} w="100%" alt={product.name} fit="cover" />
 }

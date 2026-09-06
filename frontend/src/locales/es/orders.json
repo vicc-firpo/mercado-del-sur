@@ -1,11 +1,19 @@
 {
   "title": "Mis órdenes",
   "empty": "Todavía no realizaste ninguna orden.",
+  "emptyCta": "Ver el catálogo",
   "orderNumber": "Orden #{{id}}",
   "date": "Fecha",
   "total": "Total",
+  "product": "Producto",
+  "quantity": "Cantidad",
+  "unitPrice": "Precio unitario",
+  "subtotal": "Subtotal",
   "itemCount_one": "{{count}} artículo",
   "itemCount_other": "{{count}} artículos",
-  "detailTitle": "Detalle de orden",
-  "detailPending": "Orden {{id}} — pendiente."
+  "backToOrders": "Volver a mis órdenes",
+  "viewDetail": "Ver detalle",
+  "loadError": "No se pudo cargar la orden.",
+  "notFoundTitle": "Orden no encontrada",
+  "notFoundText": "La orden que buscás no existe o no está disponible."
 }

@@ -39,7 +39,7 @@ export function PromoCarousel() {
         borderRadius: 'var(--mantine-radius-md)',
         color: 'var(--mantine-color-white)',
         background:
-          'linear-gradient(120deg, var(--mantine-color-primary-9) 0%, var(--mantine-color-primary-9) 62%, color-mix(in srgb, var(--mantine-color-primary-9) 62%, var(--mantine-color-secondary-9)) 100%)',
+          'linear-gradient(90deg, var(--mantine-color-primary-7) 0%, var(--mantine-color-primary-5) 100%)',
       }}
     >
       <Stack gap="xs" maw={560}>
@@ -59,7 +59,12 @@ export function PromoCarousel() {
         </Text>
       </Stack>
 
-      <Group gap={6} pos="absolute" left="var(--mantine-spacing-lg)" bottom={20}>
+      <Group
+        gap={6}
+        pos="absolute"
+        left="var(--mantine-spacing-lg)"
+        bottom={20}
+      >
         {slides.map((slide, i) => (
           <Box
             key={slide.eyebrow}

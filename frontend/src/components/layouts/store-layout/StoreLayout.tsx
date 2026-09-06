@@ -5,13 +5,19 @@ import { Outlet } from 'react-router-dom'
 
 export function StoreLayout() {
   return (
-    <AppShell header={{ height: 80 }} padding="md">
+    <AppShell
+      header={{ height: 80 }}
+      padding="md"
+      styles={{ main: { display: 'flex', flexDirection: 'column' } }}
+    >
       <AppShell.Header>
         <StoreTopbar />
       </AppShell.Header>
 
       <AppShell.Main>
-        <Outlet />
+        <div style={{ flex: 1 }}>
+          <Outlet />
+        </div>
         <SiteFooter />
       </AppShell.Main>
     </AppShell>
