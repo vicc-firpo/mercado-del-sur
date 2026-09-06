@@ -6,6 +6,12 @@
   "active": "Activo",
   "inactive": "Inactivo",
   "images": "Imágenes",
-  "detailPending": "Producto {{id}} — pendiente.",
-  "detailTitle": "Detalle de producto"
+  "backToCatalog": "Volver al catálogo",
+  "noDescription": "Este producto no tiene descripción.",
+  "loadError": "No se pudo cargar el producto.",
+  "notFoundTitle": "Producto no encontrado",
+  "notFoundText": "El producto que buscás no existe o ya no está disponible.",
+  "addedToCartTitle": "Agregado al carrito",
+  "addedToCart": "Agregaste {{name}} a tu carrito.",
+  "addToCartError": "No se pudo agregar el producto al carrito."
 }
