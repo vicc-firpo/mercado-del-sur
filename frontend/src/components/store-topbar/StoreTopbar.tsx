@@ -1,5 +1,6 @@
 import logoUrl from '@/assets/logo.png'
 import { ROUTES } from '@/constants/routes'
+import { showNotification } from '@/helpers/show-notification'
 import { useLoggedUser } from '@/hooks/use-logged-user'
 import { useLogoutMutation } from '@/store'
 import { ActionIcon, Button, Group, Image, Menu } from '@mantine/core'
@@ -18,6 +19,11 @@ export function StoreTopbar() {
       .unwrap()
       .catch(() => undefined)
     navigate(ROUTES.CATALOG)
+    showNotification({
+      type: 'success',
+      title: t('nav.logout'),
+      message: t('loggedOut', { ns: 'auth' }),
+    })
   }
 
   return (
@@ -65,7 +71,9 @@ export function StoreTopbar() {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Label>{loggedUser?.firstName ?? t('nav.account')}</Menu.Label>
+              <Menu.Label>
+                {loggedUser?.firstName ?? t('nav.account')}
+              </Menu.Label>
               <Menu.Item component={Link} to={ROUTES.ORDERS}>
                 {t('nav.orders')}
               </Menu.Item>
