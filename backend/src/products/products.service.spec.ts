@@ -1,6 +1,14 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, Inject, InjectionToken } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { DataSource, EntityManager } from 'typeorm';
 import { faker } from '@faker-js/faker';
+
+jest.mock('@nestjs/typeorm', () => ({
+  InjectRepository: (entity: InjectionToken) => Inject(entity),
+  getRepositoryToken: (entity: InjectionToken) => entity,
+}));
+
+import { CartService } from '../cart/cart.service';
 import {
   buildImage,
   buildImageWithProduct,
@@ -20,6 +28,7 @@ import { createReadStream, promises as fsPromises } from 'fs';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Product } from './entities/product.entity';
 import { ImageNotFoundException } from './exceptions/image-not-found.exception';
 import { InvalidImageFileException } from './exceptions/invalid-image-file.exception';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
@@ -46,8 +55,19 @@ describe('ProductsService', () => {
   let service: ProductsService;
   let productsRepository: MockedProductsRepository;
   let imagesRepository: MockedImagesRepository;
+  let cartService: { removeProductFromAllCarts: jest.Mock };
+  let transactionManager: { update: jest.Mock };
+  let dataSource: { transaction: jest.Mock };
 
   beforeEach(async () => {
+    transactionManager = { update: jest.fn() };
+    dataSource = {
+      transaction: jest.fn(
+        (runInTransaction: (manager: EntityManager) => unknown) =>
+          runInTransaction(transactionManager as unknown as EntityManager),
+      ),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
@@ -70,6 +90,14 @@ describe('ProductsService', () => {
             delete: jest.fn(),
           },
         },
+        {
+          provide: CartService,
+          useValue: { removeProductFromAllCarts: jest.fn() },
+        },
+        {
+          provide: DataSource,
+          useValue: dataSource,
+        },
       ],
     }).compile();
 
@@ -77,6 +105,7 @@ describe('ProductsService', () => {
     productsRepository =
       module.get<MockedProductsRepository>(ProductsRepository);
     imagesRepository = module.get<MockedImagesRepository>(ImagesRepository);
+    cartService = module.get(CartService);
   });
 
   afterEach(() => {
@@ -264,17 +293,52 @@ describe('ProductsService', () => {
   });
 
   describe('setActive', () => {
-    it('updates the active flag and saves the product', async () => {
+    it('deactivates the product and unlinks it from every cart in one transaction', async () => {
       const product = buildProduct({ isActive: true });
       productsRepository.findOneWithImages.mockResolvedValue(product);
-      productsRepository.save.mockImplementation((p) => Promise.resolve(p));
 
       const result = await service.setActive(product.id, false);
 
-      expect(productsRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ isActive: false }),
+      expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+      expect(transactionManager.update).toHaveBeenCalledWith(
+        Product,
+        product.id,
+        {
+          isActive: false,
+        },
       );
+      expect(cartService.removeProductFromAllCarts).toHaveBeenCalledWith(
+        product.id,
+        transactionManager,
+      );
+      expect(productsRepository.save).not.toHaveBeenCalled();
       expect(result.active).toBe(false);
+    });
+
+    it('reactivates the product without touching carts', async () => {
+      const product = buildProduct({ isActive: false });
+      productsRepository.findOneWithImages.mockResolvedValue(product);
+      productsRepository.save.mockImplementation((p) => Promise.resolve(p));
+
+      const result = await service.setActive(product.id, true);
+
+      expect(productsRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ isActive: true }),
+      );
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+      expect(cartService.removeProductFromAllCarts).not.toHaveBeenCalled();
+      expect(result.active).toBe(true);
+    });
+
+    it('is a no-op when the product already has the requested status', async () => {
+      const product = buildProduct({ isActive: true });
+      productsRepository.findOneWithImages.mockResolvedValue(product);
+
+      await service.setActive(product.id, true);
+
+      expect(productsRepository.save).not.toHaveBeenCalled();
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+      expect(cartService.removeProductFromAllCarts).not.toHaveBeenCalled();
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
@@ -414,7 +478,7 @@ describe('ProductsService', () => {
   });
 
   describe('streamImage', () => {
-    it('streams the image of an active product for a non-admin', async () => {
+    it('streams the image of an active product', async () => {
       const image = buildImageWithProduct({ isActive: true });
       imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.access as jest.Mock).mockResolvedValue(undefined);
@@ -427,23 +491,13 @@ describe('ProductsService', () => {
       expect(result.mimeType).toBe('image/jpeg');
     });
 
-    it('throws ImageNotFoundException for an inactive product when the caller is not an admin', async () => {
-      const image = buildImageWithProduct({ isActive: false });
-      imagesRepository.findOneWithProduct.mockResolvedValue(image);
-
-      await expect(
-        service.streamImage(image.productId, image.id),
-      ).rejects.toThrow(ImageNotFoundException);
-      expect(fsPromises.access).not.toHaveBeenCalled();
-    });
-
-    it('streams the image of an inactive product for an admin', async () => {
+    it('streams the image of an inactive product (bytes are not gated by status)', async () => {
       const image = buildImageWithProduct({ isActive: false });
       imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.access as jest.Mock).mockResolvedValue(undefined);
       (createReadStream as jest.Mock).mockReturnValue({});
 
-      const result = await service.streamImage(image.productId, image.id, true);
+      const result = await service.streamImage(image.productId, image.id);
 
       expect(result.mimeType).toBe('image/jpeg');
     });

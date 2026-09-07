@@ -136,16 +136,13 @@ export class ProductsController {
   }
 
   @Get(':productId/images/:imageId')
-  @UseGuards(OptionalJwtAuthGuard)
   async getImage(
     @Param('productId', ParseUUIDPipe) productId: string,
     @Param('imageId', ParseUUIDPipe) imageId: string,
-    @CurrentUser() user: AuthUser | undefined,
   ): Promise<StreamableFile> {
     const { stream, mimeType } = await this.productsService.streamImage(
       productId,
       imageId,
-      user?.role === RoleName.ADMIN,
     );
     return new StreamableFile(stream, { type: mimeType });
   }

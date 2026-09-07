@@ -11,8 +11,10 @@ jest.mock('@nestjs/typeorm', () => ({
 
 import { CartService } from '../cart/cart.service';
 import { EmptyCartException } from '../cart/exceptions/empty-cart.exception';
+import { InactiveProductInCartException } from '../cart/exceptions/inactive-product-in-cart.exception';
 import { buildCart } from '../test/factories/cart.factory';
 import { buildCartItem } from '../test/factories/cart-item.factory';
+import { buildProduct } from '../test/factories/product.factory';
 import { buildOrder } from '../test/factories/order.factory';
 import { OrdersService } from '../orders/orders.service';
 import { StripeService } from '../stripe/stripe.service';
@@ -136,6 +138,21 @@ describe('CheckoutService', () => {
       );
       expect(ordersService.createOrder).not.toHaveBeenCalled();
       expect(stripeService.createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it('throws InactiveProductInCartException when the cart holds an inactive product', async () => {
+      const inactiveProduct = buildProduct({ isActive: false });
+      const item = buildCartItem({
+        product: inactiveProduct,
+        productId: inactiveProduct.id,
+      });
+      const cart = buildCart({ items: [item] });
+      cartService.getCartForCheckout.mockResolvedValue(cart);
+
+      await expect(service.startCheckout(cart.userId)).rejects.toThrow(
+        InactiveProductInCartException,
+      );
+      expect(ordersService.createOrder).not.toHaveBeenCalled();
     });
 
     it('throws when Stripe returns no checkout url', async () => {

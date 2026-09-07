@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { CartService } from '../cart/cart.service';
 import { EmptyCartException } from '../cart/exceptions/empty-cart.exception';
+import { InactiveProductInCartException } from '../cart/exceptions/inactive-product-in-cart.exception';
 import { OrdersService } from '../orders/orders.service';
 import { StripeService } from '../stripe/stripe.service';
 import { CheckoutSessionDto } from './dto/checkout-session.dto';
@@ -32,6 +33,13 @@ export class CheckoutService {
     const cart = await this.cartService.getCartForCheckout(userId);
     if (!cart.items?.length) {
       throw new EmptyCartException();
+    }
+
+    const inactiveProductIds = cart.items
+      .filter((item) => !item.product.isActive)
+      .map((item) => item.productId);
+    if (inactiveProductIds.length) {
+      throw new InactiveProductInCartException(inactiveProductIds);
     }
 
     const order = await this.ordersService.createOrder(userId, cart.items);

@@ -2,6 +2,8 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { createReadStream, promises as fsPromises } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
+import { DataSource } from 'typeorm';
+import { CartService } from '../cart/cart.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { ImageDto } from './dto/image.dto';
@@ -29,6 +31,8 @@ export class ProductsService {
   constructor(
     private readonly productsRepository: ProductsRepository,
     private readonly imagesRepository: ImagesRepository,
+    private readonly cartService: CartService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateProductDto): Promise<ProductDto> {
@@ -85,8 +89,21 @@ export class ProductsService {
 
   async setActive(id: string, active: boolean): Promise<ProductDto> {
     const product = await this.getOrFail(id);
+    if (product.isActive === active) {
+      return ProductDto.fromEntity(product);
+    }
+
     product.isActive = active;
-    return ProductDto.fromEntity(await this.productsRepository.save(product));
+    if (active) {
+      await this.productsRepository.save(product);
+    } else {
+      await this.dataSource.transaction(async (manager) => {
+        await manager.update(Product, id, { isActive: false });
+        await this.cartService.removeProductFromAllCarts(id, manager);
+      });
+    }
+
+    return ProductDto.fromEntity(product);
   }
 
   async delete(id: string): Promise<void> {
@@ -135,12 +152,8 @@ export class ProductsService {
   async streamImage(
     productId: string,
     imageId: string,
-    isAdmin = false,
   ): Promise<{ stream: Readable; mimeType: string }> {
     const image = await this.getImageOrFail(productId, imageId);
-    if (!image.product.isActive && !isAdmin) {
-      throw new ImageNotFoundException(imageId);
-    }
     const filePath = this.getImagePath(image.id, image.extension);
     try {
       await fsPromises.access(filePath);

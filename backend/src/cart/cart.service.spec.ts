@@ -27,6 +27,7 @@ type MockedCartItemsRepository = {
   upsertQuantity: jest.Mock;
   findOneWithProduct: jest.Mock;
   delete: jest.Mock;
+  deleteByProductId: jest.Mock;
 };
 
 type MockedProductsRepository = {
@@ -57,6 +58,7 @@ describe('CartService', () => {
             upsertQuantity: jest.fn(),
             findOneWithProduct: jest.fn(),
             delete: jest.fn(),
+            deleteByProductId: jest.fn(),
           },
         },
         {
@@ -140,6 +142,19 @@ describe('CartService', () => {
       expect(cartItemsRepository.upsertQuantity).not.toHaveBeenCalled();
     });
 
+    it('rejects an inactive product and does not touch the cart', async () => {
+      const productId = faker.string.uuid();
+      productsRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.addItem(faker.string.uuid(), productId, 1),
+      ).rejects.toThrow(ProductNotFoundException);
+      expect(productsRepository.findOne).toHaveBeenCalledWith({
+        where: { id: productId, isActive: true },
+      });
+      expect(cartItemsRepository.upsertQuantity).not.toHaveBeenCalled();
+    });
+
     it('upserts the item quantity through the repository', async () => {
       const product = buildProduct();
       const cart = buildCart();
@@ -206,6 +221,31 @@ describe('CartService', () => {
       await expect(
         service.getCartForCheckout(faker.string.uuid()),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('removeProductFromAllCarts', () => {
+    it('deletes every cart item for the product', async () => {
+      const productId = faker.string.uuid();
+
+      await service.removeProductFromAllCarts(productId);
+
+      expect(cartItemsRepository.deleteByProductId).toHaveBeenCalledWith(
+        productId,
+        undefined,
+      );
+    });
+
+    it('forwards a transaction manager when given one', async () => {
+      const productId = faker.string.uuid();
+      const manager = {} as never;
+
+      await service.removeProductFromAllCarts(productId, manager);
+
+      expect(cartItemsRepository.deleteByProductId).toHaveBeenCalledWith(
+        productId,
+        manager,
+      );
     });
   });
 

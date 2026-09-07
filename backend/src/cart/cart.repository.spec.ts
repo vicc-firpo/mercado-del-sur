@@ -1,4 +1,4 @@
-import { DataSource, SelectQueryBuilder } from 'typeorm';
+import { DataSource, EntityManager, SelectQueryBuilder } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { buildCart } from '../test/factories/cart.factory';
 import { buildCartItem } from '../test/factories/cart-item.factory';
@@ -101,6 +101,37 @@ describe('CartItemsRepository', () => {
         where: { cartId, productId: item.productId },
         relations: { product: true },
       });
+    });
+  });
+
+  describe('deleteByProductId', () => {
+    it('deletes every cart item that references the product', async () => {
+      const productId = faker.string.uuid();
+      const del = jest
+        .spyOn(repository, 'delete')
+        .mockResolvedValue({ affected: 2, raw: [] });
+
+      await repository.deleteByProductId(productId);
+
+      expect(del).toHaveBeenCalledWith({ productId });
+    });
+
+    it('uses the transaction manager repository when one is provided', async () => {
+      const productId = faker.string.uuid();
+      const managerDelete = jest
+        .fn()
+        .mockResolvedValue({ affected: 1, raw: [] });
+      const getRepository = jest
+        .fn()
+        .mockReturnValue({ delete: managerDelete });
+      const manager = { getRepository } as unknown as EntityManager;
+      const del = jest.spyOn(repository, 'delete');
+
+      await repository.deleteByProductId(productId, manager);
+
+      expect(getRepository).toHaveBeenCalledWith(CartItem);
+      expect(managerDelete).toHaveBeenCalledWith({ productId });
+      expect(del).not.toHaveBeenCalled();
     });
   });
 });

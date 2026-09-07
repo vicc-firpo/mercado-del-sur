@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Product } from '../products/entities/product.entity';
 import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
 import { CartItemsRepository } from './cart-items.repository';
@@ -34,7 +34,7 @@ export class CartService {
     quantity: number,
   ): Promise<CartItemDto> {
     const product = await this.productsRepository.findOne({
-      where: { id: productId },
+      where: { id: productId, isActive: true },
     });
     if (!product) {
       throw new ProductNotFoundException(productId);
@@ -60,6 +60,13 @@ export class CartService {
 
   getCartForCheckout(userId: string): Promise<Cart> {
     return this.getCartOrFail(userId);
+  }
+
+  async removeProductFromAllCarts(
+    productId: string,
+    manager?: EntityManager,
+  ): Promise<void> {
+    await this.cartItemsRepository.deleteByProductId(productId, manager);
   }
 
   async clearCart(userId: string): Promise<void> {

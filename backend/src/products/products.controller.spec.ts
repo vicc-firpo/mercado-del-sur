@@ -242,18 +242,12 @@ describe('ProductsController', () => {
         stream,
         mimeType: 'image/png',
       });
-      const admin: AuthUser = {
-        userId: faker.string.uuid(),
-        email: faker.internet.email(),
-        role: RoleName.ADMIN,
-      };
 
-      const result = await controller.getImage(productId, imageId, admin);
+      const result = await controller.getImage(productId, imageId);
 
       expect(productsService.streamImage).toHaveBeenCalledWith(
         productId,
         imageId,
-        true,
       );
       expect(result).toBeInstanceOf(StreamableFile);
       expect(result.getStream()).toBe(stream);

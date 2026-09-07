@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, DeleteResult, EntityManager, Repository } from 'typeorm';
 import { CartItem } from './entities/cart-item.entity';
 
 @Injectable()
@@ -29,5 +29,13 @@ export class CartItemsRepository extends Repository<CartItem> {
       where: { cartId, productId },
       relations: { product: true },
     });
+  }
+
+  deleteByProductId(
+    productId: string,
+    manager?: EntityManager,
+  ): Promise<DeleteResult> {
+    const repository = manager ? manager.getRepository(CartItem) : this;
+    return repository.delete({ productId });
   }
 }
