@@ -2,7 +2,7 @@
   "products": {
     "title": "Productos",
     "new": "Nuevo producto",
-    "searchPlaceholder": "Buscar por nombre o ID…",
+    "searchPlaceholder": "Buscar por nombre o descripción…",
     "searchLabel": "Buscar productos",
     "columns": {
       "id": "ID",

@@ -5,20 +5,20 @@ import { OrderDetailDto } from '../orders/dto/order-detail.dto';
 import { OrdersService } from '../orders/orders.service';
 import { Product } from '../products/entities/product.entity';
 import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
+import { CartItemsRepository } from './cart-items.repository';
+import { CartsRepository } from './carts.repository';
 import { CartItemDto } from './dto/cart-item.dto';
 import { CartDto } from './dto/cart.dto';
-import { CartItem } from './entities/cart-item.entity';
 import { Cart } from './entities/cart.entity';
+import { CartItem } from './entities/cart-item.entity';
 import { CartItemNotFoundException } from './exceptions/cart-item-not-found.exception';
 import { EmptyCartException } from './exceptions/empty-cart.exception';
 
 @Injectable()
 export class CartService {
   constructor(
-    @InjectRepository(Cart)
-    private readonly cartsRepository: Repository<Cart>,
-    @InjectRepository(CartItem)
-    private readonly cartItemsRepository: Repository<CartItem>,
+    private readonly cartsRepository: CartsRepository,
+    private readonly cartItemsRepository: CartItemsRepository,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
     private readonly ordersService: OrdersService,
@@ -45,13 +45,7 @@ export class CartService {
     }
     const cart = await this.getCartOrFail(userId);
 
-    await this.cartItemsRepository
-      .createQueryBuilder()
-      .insert()
-      .into(CartItem)
-      .values({ cartId: cart.id, productId, quantity })
-      .orUpdate(['quantity'], ['cart_id', 'product_id'])
-      .execute();
+    await this.cartItemsRepository.upsertQuantity(cart.id, productId, quantity);
 
     const item = await this.getCartItemOrFail(cart.id, productId);
     return CartItemDto.fromEntity(item);
@@ -80,10 +74,7 @@ export class CartService {
   }
 
   private async getCartOrFail(userId: string): Promise<Cart> {
-    const cart = await this.cartsRepository.findOne({
-      where: { userId },
-      relations: { items: { product: { images: true } } },
-    });
+    const cart = await this.cartsRepository.findOneByUserWithItems(userId);
     if (!cart) {
       throw new Error(`Cart not found for user ${userId}`);
     }
@@ -94,10 +85,10 @@ export class CartService {
     cartId: string,
     productId: string,
   ): Promise<CartItem> {
-    const item = await this.cartItemsRepository.findOne({
-      where: { cartId, productId },
-      relations: { product: true },
-    });
+    const item = await this.cartItemsRepository.findOneWithProduct(
+      cartId,
+      productId,
+    );
     if (!item) {
       throw new CartItemNotFoundException(productId);
     }

@@ -21,6 +21,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
+import { useDebouncedValue } from '@mantine/hooks'
 import {
   IconEye,
   IconPencil,
@@ -28,7 +29,7 @@ import {
   IconSearch,
   IconTrash,
 } from '@tabler/icons-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -36,25 +37,20 @@ export default function AdminProductsPage() {
   const { t } = useTranslation('admin')
   const navigate = useNavigate()
 
+  const [search, setSearch] = useState('')
+  const [debouncedSearch] = useDebouncedValue(search, 300)
+  const trimmedSearch = debouncedSearch.trim()
+
   const { data, isLoading, error } = useGetProductsQuery({
     status: ProductStatusFilter.ALL,
+    search: trimmedSearch || undefined,
   })
 
-  const [search, setSearch] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Product | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
 
-  const query = search.trim().toLowerCase()
-  const products = useMemo(() => {
-    const all = data ?? []
-    if (!query) return all
-    return all.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query) ||
-        product.id.toLowerCase().includes(query),
-    )
-  }, [data, query])
+  const products = data ?? []
 
   return (
     <Container size="xl" py="md">
@@ -90,8 +86,8 @@ export default function AdminProductsPage() {
           </Stack>
         ) : products.length === 0 ? (
           <Text c="dimmed" py="xl" ta="center">
-            {query
-              ? t('products.noResults', { query: search.trim() })
+            {trimmedSearch
+              ? t('products.noResults', { query: trimmedSearch })
               : t('products.empty')}
           </Text>
         ) : (

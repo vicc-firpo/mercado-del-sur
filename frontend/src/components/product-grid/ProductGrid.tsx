@@ -9,9 +9,11 @@ const SKELETON_COUNT = 8
 export function ProductGrid({
   products,
   loading = false,
+  emptyMessage,
 }: {
   products: Product[]
   loading?: boolean
+  emptyMessage?: string
 }) {
   const { t } = useTranslation('catalog')
 
@@ -26,7 +28,7 @@ export function ProductGrid({
   }
 
   if (products.length === 0) {
-    return <Text c="dimmed">{t('empty')}</Text>
+    return <Text c="dimmed">{emptyMessage ?? t('empty')}</Text>
   }
 
   return (

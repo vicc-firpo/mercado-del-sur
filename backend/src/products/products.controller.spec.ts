@@ -87,7 +87,11 @@ describe('ProductsController', () => {
 
       const result = await controller.findAll({}, undefined);
 
-      expect(productsService.findAll).toHaveBeenCalledWith(undefined, false);
+      expect(productsService.findAll).toHaveBeenCalledWith(
+        undefined,
+        false,
+        undefined,
+      );
       expect(result).toBe(products);
     });
 
@@ -104,6 +108,7 @@ describe('ProductsController', () => {
       expect(productsService.findAll).toHaveBeenCalledWith(
         ProductStatusFilter.ALL,
         true,
+        undefined,
       );
     });
 
@@ -117,7 +122,23 @@ describe('ProductsController', () => {
 
       await controller.findAll({}, customer);
 
-      expect(productsService.findAll).toHaveBeenCalledWith(undefined, false);
+      expect(productsService.findAll).toHaveBeenCalledWith(
+        undefined,
+        false,
+        undefined,
+      );
+    });
+
+    it('forwards the search term to the service', async () => {
+      productsService.findAll.mockResolvedValue([]);
+
+      await controller.findAll({ search: 'mesa' }, undefined);
+
+      expect(productsService.findAll).toHaveBeenCalledWith(
+        undefined,
+        false,
+        'mesa',
+      );
     });
   });
 

@@ -1,9 +1,7 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { createReadStream, promises as fsPromises } from 'fs';
 import { join } from 'path';
 import { Readable } from 'stream';
-import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { ImageDto } from './dto/image.dto';
@@ -15,10 +13,12 @@ import { ImageExtension } from './enums/image-extension.enum';
 import { ImageNotFoundException } from './exceptions/image-not-found.exception';
 import { InvalidImageFileException } from './exceptions/invalid-image-file.exception';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
+import { ImagesRepository } from './images.repository';
 import {
   EXTENSION_TO_MIME_TYPE,
   MIME_TYPE_TO_EXTENSION,
 } from './image-mime-types';
+import { ProductsRepository } from './products.repository';
 
 const IMAGES_DIR = join(process.cwd(), 'data', 'images');
 
@@ -27,10 +27,8 @@ export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
   constructor(
-    @InjectRepository(Product)
-    private readonly productsRepository: Repository<Product>,
-    @InjectRepository(Image)
-    private readonly imagesRepository: Repository<Image>,
+    private readonly productsRepository: ProductsRepository,
+    private readonly imagesRepository: ImagesRepository,
   ) {}
 
   async create(dto: CreateProductDto): Promise<ProductDto> {
@@ -46,6 +44,7 @@ export class ProductsService {
   async findAll(
     status?: ProductStatusFilter,
     isAdmin = false,
+    search?: string,
   ): Promise<ProductDto[]> {
     const wantsInactive =
       status === ProductStatusFilter.ALL ||
@@ -55,13 +54,15 @@ export class ProductsService {
         'Admin role required to view inactive products',
       );
     }
-    const products = await this.productsRepository.find({
-      where:
-        status === ProductStatusFilter.ALL
-          ? {}
-          : { isActive: status !== ProductStatusFilter.INACTIVE },
-      relations: { images: true },
-      order: { createdAt: 'ASC' },
+
+    const activeFilter =
+      status === ProductStatusFilter.ALL
+        ? undefined
+        : status !== ProductStatusFilter.INACTIVE;
+
+    const products = await this.productsRepository.search({
+      activeFilter,
+      term: search?.trim(),
     });
     return products.map((product) => ProductDto.fromEntity(product));
   }
@@ -153,10 +154,7 @@ export class ProductsService {
   }
 
   private async getOrFail(id: string): Promise<Product> {
-    const product = await this.productsRepository.findOne({
-      where: { id },
-      relations: { images: true },
-    });
+    const product = await this.productsRepository.findOneWithImages(id);
     if (!product) {
       throw new ProductNotFoundException(id);
     }
@@ -167,10 +165,10 @@ export class ProductsService {
     productId: string,
     imageId: string,
   ): Promise<Image> {
-    const image = await this.imagesRepository.findOne({
-      where: { id: imageId, productId },
-      relations: { product: true },
-    });
+    const image = await this.imagesRepository.findOneWithProduct(
+      productId,
+      imageId,
+    );
     if (!image) {
       throw new ImageNotFoundException(imageId);
     }

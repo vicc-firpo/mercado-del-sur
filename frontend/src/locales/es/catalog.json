@@ -7,7 +7,8 @@
   "addToCart": "Agregar al carrito",
   "outOfStock": "Sin stock",
   "sectionTitle": "Catálogo de Productos",
-  "searchPlaceholder": "Buscar en el catálogo de productos (cerámica, textiles, iluminación)…",
+  "searchPlaceholder": "Buscar productos por nombre o descripción…",
+  "noResults": "No se encontraron productos para “{{query}}”.",
   "viewDetail": "Ver detalle",
   "workshopPrice": "PRECIO TALLER",
   "highlights": {

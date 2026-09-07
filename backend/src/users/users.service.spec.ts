@@ -1,71 +1,52 @@
 import { Inject, InjectionToken } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
-import { QueryFailedError } from 'typeorm';
 import { buildUser } from '../test/factories/user.factory';
 
 jest.mock('@nestjs/typeorm', () => ({
   InjectRepository: (entity: InjectionToken) => Inject(entity),
   getRepositoryToken: (entity: InjectionToken) => entity,
 }));
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { CartService } from '../cart/cart.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RoleName } from './enums/role-name.enum';
-import { User } from './entities/user.entity';
 import { EmailAlreadyInUseException } from './exceptions/email-already-in-use.exception';
 import { UserNotFoundException } from './exceptions/user-not-found.exception';
+import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 
-function buildUniqueViolationError(): QueryFailedError {
-  const error = new QueryFailedError('', [], new Error('duplicate key'));
-  (error as unknown as { driverError: { code: string } }).driverError = {
-    code: '23505',
-  };
-  return error;
-}
-
-type MockedUserRepository = {
+type MockedUsersRepository = {
   create: jest.Mock;
-  save: jest.Mock;
+  saveUnique: jest.Mock;
   find: jest.Mock;
   findOne: jest.Mock;
   update: jest.Mock;
   delete: jest.Mock;
-  createQueryBuilder: jest.Mock;
+  findByEmailWithPassword: jest.Mock;
+  findByIdWithPassword: jest.Mock;
 };
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repository: MockedUserRepository;
+  let repository: MockedUsersRepository;
   let cartService: { createCartForUser: jest.Mock };
-  let queryBuilder: {
-    addSelect: jest.Mock;
-    where: jest.Mock;
-    getOne: jest.Mock;
-  };
 
   beforeEach(async () => {
-    queryBuilder = {
-      addSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      getOne: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         {
-          provide: getRepositoryToken(User),
+          provide: UsersRepository,
           useValue: {
             create: jest.fn(),
-            save: jest.fn(),
+            saveUnique: jest.fn(),
             find: jest.fn(),
             findOne: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
-            createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+            findByEmailWithPassword: jest.fn(),
+            findByIdWithPassword: jest.fn(),
           },
         },
         {
@@ -76,7 +57,7 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get(UsersService);
-    repository = module.get<MockedUserRepository>(getRepositoryToken(User));
+    repository = module.get<MockedUsersRepository>(UsersRepository);
     cartService = module.get(CartService);
   });
 
@@ -94,7 +75,7 @@ describe('UsersService', () => {
       const passwordHash = faker.internet.password();
       const created = buildUser({ ...dto, password: passwordHash });
       repository.create.mockReturnValue(created);
-      repository.save.mockResolvedValue(created);
+      repository.saveUnique.mockResolvedValue(created);
 
       const result = await service.create(dto, passwordHash);
 
@@ -105,7 +86,7 @@ describe('UsersService', () => {
         password: passwordHash,
         role: RoleName.CUSTOMER,
       });
-      expect(repository.save).toHaveBeenCalledWith(created);
+      expect(repository.saveUnique).toHaveBeenCalledWith(created);
       expect(cartService.createCartForUser).toHaveBeenCalledWith(created.id);
       expect(result).toEqual({
         id: created.id,
@@ -118,7 +99,7 @@ describe('UsersService', () => {
       });
     });
 
-    it('throws EmailAlreadyInUseException when the email is already taken', async () => {
+    it('propagates EmailAlreadyInUseException from the repository', async () => {
       const dto: CreateUserDto = {
         firstName: faker.person.firstName(),
         lastName: faker.person.lastName(),
@@ -126,7 +107,9 @@ describe('UsersService', () => {
       };
       const created = buildUser(dto);
       repository.create.mockReturnValue(created);
-      repository.save.mockRejectedValue(buildUniqueViolationError());
+      repository.saveUnique.mockRejectedValue(
+        new EmailAlreadyInUseException(dto.email),
+      );
 
       await expect(
         service.create(dto, faker.internet.password()),
@@ -136,22 +119,20 @@ describe('UsersService', () => {
   });
 
   describe('findByEmail', () => {
-    it('queries with the password column selected', async () => {
+    it('delegates to the repository password-aware lookup', async () => {
       const user = buildUser();
-      queryBuilder.getOne.mockResolvedValue(user);
+      repository.findByEmailWithPassword.mockResolvedValue(user);
 
       const result = await service.findByEmail(user.email);
 
-      expect(repository.createQueryBuilder).toHaveBeenCalledWith('user');
-      expect(queryBuilder.addSelect).toHaveBeenCalledWith('user.password');
-      expect(queryBuilder.where).toHaveBeenCalledWith('user.email = :email', {
-        email: user.email,
-      });
+      expect(repository.findByEmailWithPassword).toHaveBeenCalledWith(
+        user.email,
+      );
       expect(result).toBe(user);
     });
 
     it('returns null when no user matches the email', async () => {
-      queryBuilder.getOne.mockResolvedValue(null);
+      repository.findByEmailWithPassword.mockResolvedValue(null);
 
       const result = await service.findByEmail(faker.internet.email());
 
@@ -162,18 +143,16 @@ describe('UsersService', () => {
   describe('findById', () => {
     it('returns the user when found', async () => {
       const user = buildUser();
-      queryBuilder.getOne.mockResolvedValue(user);
+      repository.findByIdWithPassword.mockResolvedValue(user);
 
       const result = await service.findById(user.id);
 
-      expect(queryBuilder.where).toHaveBeenCalledWith('user.id = :id', {
-        id: user.id,
-      });
+      expect(repository.findByIdWithPassword).toHaveBeenCalledWith(user.id);
       expect(result).toBe(user);
     });
 
     it('throws UserNotFoundException when not found', async () => {
-      queryBuilder.getOne.mockResolvedValue(null);
+      repository.findByIdWithPassword.mockResolvedValue(null);
       const id = faker.string.uuid();
 
       await expect(service.findById(id)).rejects.toThrow(UserNotFoundException);
@@ -252,11 +231,11 @@ describe('UsersService', () => {
         email: faker.internet.email(),
       };
       repository.findOne.mockResolvedValue(user);
-      repository.save.mockResolvedValue({ ...user, ...dto });
+      repository.saveUnique.mockResolvedValue({ ...user, ...dto });
 
       const result = await service.update(user.id, dto);
 
-      expect(repository.save).toHaveBeenCalledWith(
+      expect(repository.saveUnique).toHaveBeenCalledWith(
         expect.objectContaining(dto),
       );
       expect(result).toEqual(expect.objectContaining(dto));
@@ -275,7 +254,7 @@ describe('UsersService', () => {
       );
     });
 
-    it('throws EmailAlreadyInUseException when the new email is taken', async () => {
+    it('propagates EmailAlreadyInUseException from the repository', async () => {
       const user = buildUser();
       const dto: UpdateUserDto = {
         firstName: user.firstName,
@@ -283,7 +262,9 @@ describe('UsersService', () => {
         email: faker.internet.email(),
       };
       repository.findOne.mockResolvedValue(user);
-      repository.save.mockRejectedValue(buildUniqueViolationError());
+      repository.saveUnique.mockRejectedValue(
+        new EmailAlreadyInUseException(dto.email),
+      );
 
       await expect(service.update(user.id, dto)).rejects.toThrow(
         EmailAlreadyInUseException,

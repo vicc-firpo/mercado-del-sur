@@ -56,6 +56,7 @@ export class ProductsController {
     return this.productsService.findAll(
       query.status,
       user?.role === RoleName.ADMIN,
+      query.search,
     );
   }
 

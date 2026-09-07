@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, InjectionToken } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 import {
@@ -7,10 +7,6 @@ import {
 } from '../test/factories/image.factory';
 import { buildProduct } from '../test/factories/product.factory';
 
-jest.mock('@nestjs/typeorm', () => ({
-  InjectRepository: (entity: InjectionToken) => Inject(entity),
-  getRepositoryToken: (entity: InjectionToken) => entity,
-}));
 jest.mock('fs', () => ({
   createReadStream: jest.fn(),
   promises: {
@@ -21,29 +17,28 @@ jest.mock('fs', () => ({
   },
 }));
 import { createReadStream, promises as fsPromises } from 'fs';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductStatusFilter } from './dto/find-products-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Image } from './entities/image.entity';
-import { Product } from './entities/product.entity';
 import { ImageNotFoundException } from './exceptions/image-not-found.exception';
 import { InvalidImageFileException } from './exceptions/invalid-image-file.exception';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
+import { ImagesRepository } from './images.repository';
+import { ProductsRepository } from './products.repository';
 import { ProductsService } from './products.service';
 
 type MockedProductsRepository = {
+  search: jest.Mock;
+  findOneWithImages: jest.Mock;
   create: jest.Mock;
   save: jest.Mock;
-  find: jest.Mock;
-  findOne: jest.Mock;
   delete: jest.Mock;
 };
 
 type MockedImagesRepository = {
+  findOneWithProduct: jest.Mock;
   create: jest.Mock;
   save: jest.Mock;
-  findOne: jest.Mock;
   delete: jest.Mock;
 };
 
@@ -57,21 +52,21 @@ describe('ProductsService', () => {
       providers: [
         ProductsService,
         {
-          provide: getRepositoryToken(Product),
+          provide: ProductsRepository,
           useValue: {
+            search: jest.fn().mockResolvedValue([]),
+            findOneWithImages: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
-            find: jest.fn(),
-            findOne: jest.fn(),
             delete: jest.fn(),
           },
         },
         {
-          provide: getRepositoryToken(Image),
+          provide: ImagesRepository,
           useValue: {
+            findOneWithProduct: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
-            findOne: jest.fn(),
             delete: jest.fn(),
           },
         },
@@ -79,12 +74,9 @@ describe('ProductsService', () => {
     }).compile();
 
     service = module.get(ProductsService);
-    productsRepository = module.get<MockedProductsRepository>(
-      getRepositoryToken(Product),
-    );
-    imagesRepository = module.get<MockedImagesRepository>(
-      getRepositoryToken(Image),
-    );
+    productsRepository =
+      module.get<MockedProductsRepository>(ProductsRepository);
+    imagesRepository = module.get<MockedImagesRepository>(ImagesRepository);
   });
 
   afterEach(() => {
@@ -141,45 +133,42 @@ describe('ProductsService', () => {
   });
 
   describe('findAll', () => {
-    it('returns only active products by default', async () => {
+    it('asks the repository for active products only by default', async () => {
       const products = [buildProduct(), buildProduct()];
-      productsRepository.find.mockResolvedValue(products);
+      productsRepository.search.mockResolvedValue(products);
 
       const result = await service.findAll();
 
-      expect(productsRepository.find).toHaveBeenCalledWith({
-        where: { isActive: true },
-        relations: { images: true },
-        order: { createdAt: 'ASC' },
+      expect(productsRepository.search).toHaveBeenCalledWith({
+        activeFilter: true,
+        term: undefined,
       });
       expect(result).toHaveLength(2);
     });
 
-    it('returns inactive products for an admin', async () => {
-      productsRepository.find.mockResolvedValue([]);
-
+    it('asks for inactive products only when an admin filters by inactive', async () => {
       await service.findAll(ProductStatusFilter.INACTIVE, true);
 
-      expect(productsRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { isActive: false } }),
-      );
+      expect(productsRepository.search).toHaveBeenCalledWith({
+        activeFilter: false,
+        term: undefined,
+      });
     });
 
-    it('returns every product for an admin when status is all', async () => {
-      productsRepository.find.mockResolvedValue([]);
-
+    it('does not filter by status when an admin requests all products', async () => {
       await service.findAll(ProductStatusFilter.ALL, true);
 
-      expect(productsRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: {} }),
-      );
+      expect(productsRepository.search).toHaveBeenCalledWith({
+        activeFilter: undefined,
+        term: undefined,
+      });
     });
 
     it('throws ForbiddenException when a non-admin requests inactive products', async () => {
       await expect(
         service.findAll(ProductStatusFilter.INACTIVE, false),
       ).rejects.toThrow(ForbiddenException);
-      expect(productsRepository.find).not.toHaveBeenCalled();
+      expect(productsRepository.search).not.toHaveBeenCalled();
     });
 
     it('throws ForbiddenException when a non-admin requests all products', async () => {
@@ -187,12 +176,21 @@ describe('ProductsService', () => {
         service.findAll(ProductStatusFilter.ALL, false),
       ).rejects.toThrow(ForbiddenException);
     });
+
+    it('forwards the trimmed search term to the repository', async () => {
+      await service.findAll(undefined, false, '  Sofá  ');
+
+      expect(productsRepository.search).toHaveBeenCalledWith({
+        activeFilter: true,
+        term: 'Sofá',
+      });
+    });
   });
 
   describe('findOne', () => {
     it('returns an active product for a non-admin', async () => {
       const product = buildProduct({ isActive: true });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
 
       const result = await service.findOne(product.id);
 
@@ -203,7 +201,7 @@ describe('ProductsService', () => {
 
     it('throws ProductNotFoundException for an inactive product requested by a non-admin', async () => {
       const product = buildProduct({ isActive: false });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
 
       await expect(service.findOne(product.id)).rejects.toThrow(
         ProductNotFoundException,
@@ -212,7 +210,7 @@ describe('ProductsService', () => {
 
     it('returns an inactive product for an admin', async () => {
       const product = buildProduct({ isActive: false });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
 
       const result = await service.findOne(product.id, true);
 
@@ -220,7 +218,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
-      productsRepository.findOne.mockResolvedValue(null);
+      productsRepository.findOneWithImages.mockResolvedValue(null);
 
       await expect(service.findOne(faker.string.uuid())).rejects.toThrow(
         ProductNotFoundException,
@@ -236,7 +234,7 @@ describe('ProductsService', () => {
         description: faker.commerce.productDescription(),
         price: 42,
       };
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
       productsRepository.save.mockImplementation((p) => Promise.resolve(p));
 
       const result = await service.update(product.id, dto);
@@ -252,7 +250,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
-      productsRepository.findOne.mockResolvedValue(null);
+      productsRepository.findOneWithImages.mockResolvedValue(null);
       const dto: UpdateProductDto = {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
@@ -268,7 +266,7 @@ describe('ProductsService', () => {
   describe('setActive', () => {
     it('updates the active flag and saves the product', async () => {
       const product = buildProduct({ isActive: true });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
       productsRepository.save.mockImplementation((p) => Promise.resolve(p));
 
       const result = await service.setActive(product.id, false);
@@ -280,7 +278,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
-      productsRepository.findOne.mockResolvedValue(null);
+      productsRepository.findOneWithImages.mockResolvedValue(null);
 
       await expect(
         service.setActive(faker.string.uuid(), true),
@@ -320,7 +318,7 @@ describe('ProductsService', () => {
     it('saves the image and writes it to disk', async () => {
       const product = buildProduct();
       const image = buildImage({ productId: product.id });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
       imagesRepository.create.mockReturnValue(image);
       imagesRepository.save.mockResolvedValue(image);
       (fsPromises.mkdir as jest.Mock).mockResolvedValue(undefined);
@@ -342,7 +340,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ProductNotFoundException when the product does not exist', async () => {
-      productsRepository.findOne.mockResolvedValue(null);
+      productsRepository.findOneWithImages.mockResolvedValue(null);
 
       await expect(
         service.uploadImage(faker.string.uuid(), buildFile()),
@@ -352,7 +350,7 @@ describe('ProductsService', () => {
 
     it('throws InvalidImageFileException when no file is provided', async () => {
       const product = buildProduct();
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
 
       await expect(
         service.uploadImage(
@@ -364,7 +362,7 @@ describe('ProductsService', () => {
 
     it('throws InvalidImageFileException for an unsupported mime type', async () => {
       const product = buildProduct();
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
 
       await expect(
         service.uploadImage(
@@ -378,7 +376,7 @@ describe('ProductsService', () => {
     it('deletes the persisted image record when writing the file fails', async () => {
       const product = buildProduct();
       const image = buildImage({ productId: product.id });
-      productsRepository.findOne.mockResolvedValue(product);
+      productsRepository.findOneWithImages.mockResolvedValue(product);
       imagesRepository.create.mockReturnValue(image);
       imagesRepository.save.mockResolvedValue(image);
       const writeError = new Error('disk full');
@@ -395,7 +393,7 @@ describe('ProductsService', () => {
   describe('deleteImage', () => {
     it('deletes the image record and its file', async () => {
       const image = buildImageWithProduct();
-      imagesRepository.findOne.mockResolvedValue(image);
+      imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.unlink as jest.Mock).mockResolvedValue(undefined);
 
       await service.deleteImage(image.productId, image.id);
@@ -407,7 +405,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ImageNotFoundException when the image does not exist', async () => {
-      imagesRepository.findOne.mockResolvedValue(null);
+      imagesRepository.findOneWithProduct.mockResolvedValue(null);
 
       await expect(
         service.deleteImage(faker.string.uuid(), faker.string.uuid()),
@@ -418,7 +416,7 @@ describe('ProductsService', () => {
   describe('streamImage', () => {
     it('streams the image of an active product for a non-admin', async () => {
       const image = buildImageWithProduct({ isActive: true });
-      imagesRepository.findOne.mockResolvedValue(image);
+      imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.access as jest.Mock).mockResolvedValue(undefined);
       const fakeStream = {};
       (createReadStream as jest.Mock).mockReturnValue(fakeStream);
@@ -431,7 +429,7 @@ describe('ProductsService', () => {
 
     it('throws ImageNotFoundException for an inactive product when the caller is not an admin', async () => {
       const image = buildImageWithProduct({ isActive: false });
-      imagesRepository.findOne.mockResolvedValue(image);
+      imagesRepository.findOneWithProduct.mockResolvedValue(image);
 
       await expect(
         service.streamImage(image.productId, image.id),
@@ -441,7 +439,7 @@ describe('ProductsService', () => {
 
     it('streams the image of an inactive product for an admin', async () => {
       const image = buildImageWithProduct({ isActive: false });
-      imagesRepository.findOne.mockResolvedValue(image);
+      imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.access as jest.Mock).mockResolvedValue(undefined);
       (createReadStream as jest.Mock).mockReturnValue({});
 
@@ -452,7 +450,7 @@ describe('ProductsService', () => {
 
     it('throws ImageNotFoundException when the file is missing from disk', async () => {
       const image = buildImageWithProduct({ isActive: true });
-      imagesRepository.findOne.mockResolvedValue(image);
+      imagesRepository.findOneWithProduct.mockResolvedValue(image);
       (fsPromises.access as jest.Mock).mockRejectedValue(new Error('ENOENT'));
 
       await expect(
@@ -461,7 +459,7 @@ describe('ProductsService', () => {
     });
 
     it('throws ImageNotFoundException when the image does not exist', async () => {
-      imagesRepository.findOne.mockResolvedValue(null);
+      imagesRepository.findOneWithProduct.mockResolvedValue(null);
 
       await expect(
         service.streamImage(faker.string.uuid(), faker.string.uuid()),
