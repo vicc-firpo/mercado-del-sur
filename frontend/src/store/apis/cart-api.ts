@@ -1,9 +1,8 @@
 import type { Cart, CartItem } from '@/types/cart/cart'
 import type { UpdateCartItemParams } from '@/types/cart/update-cart-item-params'
-import type { OrderDetail } from '@/types/orders/order'
+import type { CheckoutSession } from '@/types/checkout/checkout-session'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { baseQueryWithAuth } from './base-query'
-import { ordersApi } from './orders-api'
 
 const TAG_TYPES = ['RETRIEVED_CART'] as const
 
@@ -34,13 +33,8 @@ export const cartApi = createApi({
       invalidatesTags: ['RETRIEVED_CART'],
     }),
 
-    checkout: builder.mutation<OrderDetail, void>({
+    checkout: builder.mutation<CheckoutSession, void>({
       query: () => ({ url: '/cart/checkout', method: 'POST' }),
-      invalidatesTags: ['RETRIEVED_CART'],
-      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
-        await queryFulfilled
-        dispatch(ordersApi.util.invalidateTags(['RETRIEVED_ORDERS']))
-      },
     }),
   }),
 })

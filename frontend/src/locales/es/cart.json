@@ -19,9 +19,6 @@
   "updateError": "No se pudo actualizar la cantidad.",
   "removeError": "No se pudo quitar el producto.",
   "loadError": "No se pudo cargar el carrito.",
-  "checkout": "Finalizar compra",
   "checkoutCta": "Finalizar compra",
-  "checkoutSuccessTitle": "¡Gracias por tu compra!",
-  "checkoutSuccess": "¡Compra realizada con éxito!",
-  "checkoutError": "No se pudo finalizar la compra."
+  "checkoutError": "No se pudo iniciar el pago."
 }

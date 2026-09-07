@@ -4,6 +4,7 @@ import esAdmin from './locales/es/admin.json'
 import esAuth from './locales/es/auth.json'
 import esCart from './locales/es/cart.json'
 import esCatalog from './locales/es/catalog.json'
+import esCheckout from './locales/es/checkout.json'
 import esCommon from './locales/es/common.json'
 import esOrders from './locales/es/orders.json'
 import esProducts from './locales/es/products.json'
@@ -20,6 +21,7 @@ i18n.use(initReactI18next).init({
     'catalog',
     'products',
     'cart',
+    'checkout',
     'orders',
     'admin',
     'validation',
@@ -33,6 +35,7 @@ i18n.use(initReactI18next).init({
       catalog: esCatalog,
       products: esProducts,
       cart: esCart,
+      checkout: esCheckout,
       orders: esOrders,
       admin: esAdmin,
       validation: esValidation,

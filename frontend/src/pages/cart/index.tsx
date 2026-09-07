@@ -1,8 +1,9 @@
 import { CartItemRow } from '@/components/cart-item-row/CartItemRow'
-import { buildPath, ROUTES } from '@/constants/routes'
+import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/helpers/format-price'
 import { getApiErrorMessage } from '@/helpers/get-api-error'
 import { showNotification } from '@/helpers/show-notification'
+import { setPendingOrderId } from '@/lib/pending-order'
 import { useCheckoutMutation, useGetCartQuery } from '@/store'
 import {
   Alert,
@@ -25,27 +26,24 @@ import {
   IconCreditCard,
   IconShoppingCartX,
 } from '@tabler/icons-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-/** Alto fijo de la lista de ítems: siempre el mismo, muestra ~3 productos y hace scroll a partir de ahí. */
 const LIST_HEIGHT = 500
 
 export default function CartPage() {
   const { t } = useTranslation('cart')
-  const navigate = useNavigate()
   const { data: cart, isLoading, error } = useGetCartQuery()
   const [checkout, { isLoading: isCheckingOut }] = useCheckoutMutation()
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const handleCheckout = async () => {
     try {
-      const order = await checkout().unwrap()
-      showNotification({
-        type: 'success',
-        title: t('checkoutSuccessTitle'),
-        message: t('checkoutSuccess'),
-      })
-      navigate(buildPath(ROUTES.ORDER_DETAIL, { id: order.id }))
+      const session = await checkout().unwrap()
+      setPendingOrderId(session.orderId)
+      setIsRedirecting(true)
+      window.location.href = session.checkoutUrl
     } catch (err) {
       showNotification({
         type: 'error',
@@ -176,7 +174,7 @@ export default function CartPage() {
               size="md"
               mt="sm"
               leftSection={<IconCreditCard size={18} />}
-              loading={isCheckingOut}
+              loading={isCheckingOut || isRedirecting}
               disabled={isEmpty}
               onClick={handleCheckout}
             >

@@ -1,0 +1,18 @@
+{
+  "confirmingTitle": "Estamos confirmando tu pago",
+  "confirmingText": "Esto puede tardar unos segundos. No cierres esta ventana.",
+  "successTitle": "¡Pago confirmado!",
+  "successText": "Tu orden #{{id}} se pagó correctamente. Te enviamos el detalle por correo.",
+  "viewOrder": "Ver mi orden",
+  "keepShopping": "Seguir comprando",
+  "pendingTitle": "Tu pago se está procesando",
+  "pendingText": "El pago puede demorar unos instantes en acreditarse. Podés revisar el estado desde Mis órdenes.",
+  "goToOrders": "Ir a mis órdenes",
+  "noOrderTitle": "No encontramos una compra en curso",
+  "noOrderText": "Si acabás de pagar, revisá el estado en Mis órdenes.",
+  "loadError": "No se pudo verificar el estado del pago.",
+  "cancelledTitle": "Cancelaste el pago",
+  "cancelledText": "No se realizó ningún cargo. Tu carrito sigue disponible para que completes la compra cuando quieras.",
+  "backToCart": "Volver al carrito",
+  "browseCatalog": "Ver el catálogo"
+}

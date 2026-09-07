@@ -13,6 +13,8 @@
   "itemCount_other": "{{count}} artículos",
   "backToOrders": "Volver a mis órdenes",
   "viewDetail": "Ver detalle",
+  "paid": "Pagada",
+  "paymentPending": "Pago pendiente",
   "loadError": "No se pudo cargar la orden.",
   "notFoundTitle": "Orden no encontrada",
   "notFoundText": "La orden que buscás no existe o no está disponible."

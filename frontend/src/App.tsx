@@ -6,6 +6,8 @@ import AdminProductDetailPage from '@/pages/admin-product-detail'
 import AdminProductsPage from '@/pages/admin-products'
 import CartPage from '@/pages/cart'
 import CatalogPage from '@/pages/catalog'
+import CheckoutCancelPage from '@/pages/checkout-cancel'
+import CheckoutSuccessPage from '@/pages/checkout-success'
 import LoginPage from '@/pages/login'
 import NotFoundPage from '@/pages/not-found'
 import OrderDetailPage from '@/pages/order-detail'
@@ -39,6 +41,14 @@ function App() {
 
               <Route element={<ProtectedRoute />}>
                 <Route path={ROUTES.CART} element={<CartPage />} />
+                <Route
+                  path={ROUTES.CHECKOUT_SUCCESS}
+                  element={<CheckoutSuccessPage />}
+                />
+                <Route
+                  path={ROUTES.CHECKOUT_CANCEL}
+                  element={<CheckoutCancelPage />}
+                />
                 <Route path={ROUTES.ORDERS} element={<OrdersPage />} />
                 <Route
                   path={ROUTES.ORDER_DETAIL}

@@ -4,6 +4,8 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   CART: '/cart',
+  CHECKOUT_SUCCESS: '/checkout/success',
+  CHECKOUT_CANCEL: '/checkout/cancel',
   ORDERS: '/orders',
   ORDER_DETAIL: '/orders/:id',
   ADMIN: '/admin',

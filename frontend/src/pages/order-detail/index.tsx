@@ -6,6 +6,7 @@ import { useGetOrderByIdQuery } from '@/store'
 import {
   Alert,
   Anchor,
+  Badge,
   Button,
   Container,
   Divider,
@@ -84,9 +85,18 @@ export default function OrderDetailPage() {
         </Anchor>
 
         <Stack gap={4}>
-          <Title order={2}>
-            {t('orderNumber', { id: order.id.slice(0, 8).toUpperCase() })}
-          </Title>
+          <Group gap="sm">
+            <Title order={2}>
+              {t('orderNumber', { id: order.id.slice(0, 8).toUpperCase() })}
+            </Title>
+            <Badge
+              color={order.isPaid ? 'green' : 'yellow'}
+              variant="light"
+              size="lg"
+            >
+              {order.isPaid ? t('paid') : t('paymentPending')}
+            </Badge>
+          </Group>
           <Text c="dimmed">
             {t('date')}: {formatDate(order.createdAt)}
           </Text>
