@@ -13,5 +13,6 @@
   "notFoundText": "El producto que buscás no existe o ya no está disponible.",
   "addedToCartTitle": "Agregado al carrito",
   "addedToCart": "Agregaste {{name}} a tu carrito.",
-  "addToCartError": "No se pudo agregar el producto al carrito."
+  "addToCartError": "No se pudo agregar el producto al carrito.",
+  "adminCartDisabled": "Las cuentas de administrador no pueden comprar productos."
 }

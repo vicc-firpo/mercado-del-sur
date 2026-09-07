@@ -7,8 +7,7 @@ export const ROUTES = {
   ORDERS: '/orders',
   ORDER_DETAIL: '/orders/:id',
   ADMIN: '/admin',
-  ADMIN_PRODUCTS: '/admin/products',
-  ADMIN_USERS: '/admin/users',
+  ADMIN_PRODUCT_DETAIL: '/admin/products/:id',
 } as const
 
 export function buildPath(

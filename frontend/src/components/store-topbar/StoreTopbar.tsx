@@ -4,15 +4,23 @@ import { showNotification } from '@/helpers/show-notification'
 import { useLoggedUser } from '@/hooks/use-logged-user'
 import { useLogoutMutation } from '@/store'
 import { ActionIcon, Button, Divider, Group, Image, Menu } from '@mantine/core'
-import { IconReceipt, IconShoppingCart, IconUser } from '@tabler/icons-react'
+import {
+  IconBuildingStore,
+  IconLayoutDashboard,
+  IconReceipt,
+  IconShoppingCart,
+  IconUser,
+} from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 export function StoreTopbar() {
   const { t } = useTranslation()
   const { isAuthenticated, isAdmin, loggedUser } = useLoggedUser()
   const [logout] = useLogoutMutation()
   const navigate = useNavigate()
+  const location = useLocation()
+  const isInAdminPanel = location.pathname.startsWith(ROUTES.ADMIN)
 
   const handleLogout = async () => {
     await logout()
@@ -37,7 +45,28 @@ export function StoreTopbar() {
       </Link>
 
       <Group gap="xs">
-        {isAuthenticated && (
+        {isAuthenticated && isAdmin && (
+          <>
+            <Button
+              component={Link}
+              to={isInAdminPanel ? ROUTES.CATALOG : ROUTES.ADMIN}
+              variant="subtle"
+              leftSection={
+                isInAdminPanel ? (
+                  <IconBuildingStore size={16} />
+                ) : (
+                  <IconLayoutDashboard size={16} />
+                )
+              }
+              visibleFrom="xs"
+            >
+              {isInAdminPanel ? t('nav.store') : t('nav.adminPanel')}
+            </Button>
+            <Divider orientation="vertical" my={8} visibleFrom="xs" />
+          </>
+        )}
+
+        {isAuthenticated && !isAdmin && (
           <>
             <Button
               component={Link}
@@ -52,7 +81,7 @@ export function StoreTopbar() {
           </>
         )}
 
-        {isAuthenticated && (
+        {isAuthenticated && !isAdmin && (
           <ActionIcon
             component={NavLink}
             to={ROUTES.CART}
@@ -79,12 +108,6 @@ export function StoreTopbar() {
               <Menu.Label>
                 {loggedUser?.firstName ?? t('nav.account')}
               </Menu.Label>
-              {isAdmin && (
-                <Menu.Item component={Link} to={ROUTES.ADMIN}>
-                  {t('nav.adminPanel')}
-                </Menu.Item>
-              )}
-              <Menu.Divider />
               <Menu.Item color="red" onClick={handleLogout}>
                 {t('nav.logout')}
               </Menu.Item>

@@ -1,10 +1,9 @@
 import { AdminRoute } from '@/components/AdminRoute'
-import { AdminLayout } from '@/components/layouts/admin-layout/AdminLayout'
 import { StoreLayout } from '@/components/layouts/store-layout/StoreLayout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ROUTES } from '@/constants/routes'
+import AdminProductDetailPage from '@/pages/admin-product-detail'
 import AdminProductsPage from '@/pages/admin-products'
-import AdminUsersPage from '@/pages/admin-users'
 import CartPage from '@/pages/cart'
 import CatalogPage from '@/pages/catalog'
 import LoginPage from '@/pages/login'
@@ -47,18 +46,15 @@ function App() {
                 />
               </Route>
 
-              <Route path="*" element={<NotFoundPage />} />
-            </Route>
-
-            <Route element={<AdminRoute />}>
-              <Route element={<AdminLayout />}>
+              <Route element={<AdminRoute />}>
                 <Route path={ROUTES.ADMIN} element={<AdminProductsPage />} />
                 <Route
-                  path={ROUTES.ADMIN_PRODUCTS}
-                  element={<AdminProductsPage />}
+                  path={ROUTES.ADMIN_PRODUCT_DETAIL}
+                  element={<AdminProductDetailPage />}
                 />
-                <Route path={ROUTES.ADMIN_USERS} element={<AdminUsersPage />} />
               </Route>
+
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

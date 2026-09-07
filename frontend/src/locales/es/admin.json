@@ -1,20 +1,73 @@
 {
-  "panelTitle": "Mercado del Sur · Admin",
-  "nav": {
-    "products": "Productos",
-    "users": "Usuarios"
-  },
   "products": {
     "title": "Productos",
     "new": "Nuevo producto",
+    "searchPlaceholder": "Buscar por nombre o ID…",
+    "searchLabel": "Buscar productos",
+    "columns": {
+      "id": "ID",
+      "name": "Nombre",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no hay productos cargados.",
+    "noResults": "No se encontraron productos para “{{query}}”.",
+    "loadError": "No se pudieron cargar los productos.",
+    "rowActions": {
+      "view": "Ver detalle",
+      "edit": "Modificar",
+      "delete": "Eliminar"
+    },
+    "createModalTitle": "Nuevo producto",
+    "editModalTitle": "Modificar producto",
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Ej. Silla de roble Ñandubay",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Materiales, medidas, taller de origen…",
+      "price": "Precio (UYU)",
+      "active": "Producto activo",
+      "activeHint": "Los productos inactivos no se muestran en el catálogo.",
+      "submit": "Crear producto",
+      "save": "Guardar cambios",
+      "createError": "No se pudo crear el producto.",
+      "updateError": "No se pudo guardar el producto."
+    },
+    "images": {
+      "modalTitle": "Imágenes de {{name}}",
+      "current": "Imágenes actuales",
+      "empty": "Este producto todavía no tiene imágenes.",
+      "dropzoneTitle": "Arrastrá imágenes o hacé clic para elegirlas",
+      "dropzoneHint": "JPG, PNG o WebP · hasta 5 MB por archivo",
+      "deleteImage": "Eliminar imagen",
+      "uploadSuccess": "Imagen agregada.",
+      "uploadError": "No se pudo subir la imagen.",
+      "deleteSuccess": "Imagen eliminada.",
+      "deleteError": "No se pudo eliminar la imagen.",
+      "done": "Listo"
+    },
     "createSuccess": "Producto creado.",
     "updateSuccess": "Producto actualizado.",
-    "deleteSuccess": "Producto eliminado."
-  },
-  "users": {
-    "title": "Usuarios",
-    "role": "Rol",
-    "updateSuccess": "Usuario actualizado.",
-    "deleteSuccess": "Usuario eliminado."
+    "deleteSuccess": "Producto eliminado.",
+    "deleteError": "No se pudo eliminar el producto.",
+    "deleteConfirmTitle": "Eliminar producto",
+    "deleteConfirmText": "¿Seguro que querés eliminar “{{name}}”? Esta acción no se puede deshacer.",
+    "detail": {
+      "backToList": "Volver a productos",
+      "id": "ID",
+      "images": "Imágenes",
+      "noDescription": "Este producto no tiene descripción.",
+      "edit": "Modificar",
+      "delete": "Eliminar",
+      "changeImages": "Cambiar imágenes",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "activateSuccess": "Producto activado.",
+      "deactivateSuccess": "Producto desactivado.",
+      "statusError": "No se pudo cambiar el estado del producto.",
+      "loadError": "No se pudo cargar el producto.",
+      "notFoundTitle": "Producto no encontrado",
+      "notFoundText": "El producto que buscás no existe o fue eliminado."
+    }
   }
 }

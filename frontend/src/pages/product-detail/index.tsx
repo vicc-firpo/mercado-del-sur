@@ -30,7 +30,7 @@ export default function ProductDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useLoggedUser()
+  const { isAuthenticated, isAdmin } = useLoggedUser()
 
   const {
     data: product,
@@ -155,16 +155,24 @@ export default function ProductDetailPage() {
                 min={1}
                 clampBehavior="strict"
                 allowDecimal={false}
+                disabled={isAdmin}
                 w={110}
               />
               <Button
                 leftSection={<IconShoppingCartPlus size={18} />}
                 loading={isAdding}
+                disabled={isAdmin}
                 onClick={handleAddToCart}
               >
                 {t('addToCart', { ns: 'catalog' })}
               </Button>
             </Group>
+
+            {isAdmin && (
+              <Text size="sm" c="dimmed">
+                {t('adminCartDisabled')}
+              </Text>
+            )}
           </Stack>
         </SimpleGrid>
       </Stack>
