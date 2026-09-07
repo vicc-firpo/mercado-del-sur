@@ -149,7 +149,7 @@ export function CreateProductModal({
             >
               {t('cancel', { ns: 'common' })}
             </Button>
-            <Button type="submit" loading={isLoading}>
+            <Button type="submit" variant="light" loading={isLoading}>
               {t('products.form.submit')}
             </Button>
           </Group>

@@ -25,7 +25,7 @@ export default function CatalogPage() {
     <Container size="xl" py="md">
       <Stack gap="xl">
         <PromoCarousel />
-        <ProductSearch value={search} onChange={setSearch} />
+        <ProductSearch value={search} onChange={setSearch} mt="lg" />
 
         <Stack gap="lg">
           <Title order={2}>{t('sectionTitle')}</Title>
@@ -47,7 +47,7 @@ export default function CatalogPage() {
           )}
         </Stack>
 
-        <TrustHighlights />
+        <TrustHighlights mt="xl" />
       </Stack>
     </Container>
   )

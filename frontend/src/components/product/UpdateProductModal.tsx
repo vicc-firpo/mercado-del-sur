@@ -129,7 +129,7 @@ function EditProductForm({
           <Button variant="default" onClick={onClose} disabled={isLoading}>
             {t('cancel', { ns: 'common' })}
           </Button>
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" variant="light" loading={isLoading}>
             {t('products.form.save')}
           </Button>
         </Group>

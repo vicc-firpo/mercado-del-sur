@@ -33,7 +33,7 @@ export function PromoCarousel() {
     <Box
       pos="relative"
       p={{ base: 'lg', sm: 40 }}
-      h={{ base: 380, xs: 300, sm: 250 }}
+      h={{ base: 420, xs: 340, sm: 300 }}
       style={{
         overflow: 'hidden',
         borderRadius: 'var(--mantine-radius-md)',

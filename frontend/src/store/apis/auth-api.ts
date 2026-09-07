@@ -1,5 +1,4 @@
 import type { AuthResponse } from '@/types/auth/auth-response'
-import type { ChangePasswordParams } from '@/types/auth/change-password-params'
 import type { LoginParams } from '@/types/auth/login-params'
 import type { RegisterParams } from '@/types/auth/register-params'
 import { createApi } from '@reduxjs/toolkit/query/react'
@@ -47,20 +46,8 @@ export const authApi = createApi({
         }
       },
     }),
-
-    changePassword: builder.mutation<void, ChangePasswordParams>({
-      query: (changePasswordParams) => ({
-        url: '/auth/change-password',
-        method: 'PATCH',
-        body: changePasswordParams,
-      }),
-    }),
   }),
 })
 
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useLogoutMutation,
-  useChangePasswordMutation,
-} = authApi
+export const { useLoginMutation, useRegisterMutation, useLogoutMutation } =
+  authApi

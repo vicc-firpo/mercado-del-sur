@@ -1,9 +1,17 @@
-import { Paper, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core'
+import {
+  Paper,
+  type PaperProps,
+  SimpleGrid,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
+} from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 
 const ITEM_COUNT = 3
 
-export function TrustHighlights() {
+export function TrustHighlights(props: PaperProps) {
   const { t } = useTranslation('catalog')
 
   const items = Array.from({ length: ITEM_COUNT }, (_, i) => ({
@@ -13,8 +21,14 @@ export function TrustHighlights() {
   }))
 
   return (
-    <Paper radius="lg" p={{ base: 'lg', sm: 40 }} bg="secondary.0" withBorder>
-      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={{ base: 'lg', sm: 40 }}>
+    <Paper
+      radius="lg"
+      p={{ base: 'xl', sm: 56 }}
+      bg="secondary.0"
+      withBorder
+      {...props}
+    >
+      <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={{ base: 'lg', sm: 48 }}>
         {items.map((item) => (
           <Stack key={item.number} gap="xs">
             <ThemeIcon radius="xl" size={38} variant="light" color="secondary">

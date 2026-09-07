@@ -67,6 +67,7 @@ export default function AdminProductsPage() {
             w={{ base: '100%', sm: 360 }}
           />
           <Button
+            variant="light"
             leftSection={<IconPlus size={16} />}
             onClick={() => setIsCreateOpen(true)}
           >

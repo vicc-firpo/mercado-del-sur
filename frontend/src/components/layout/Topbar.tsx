@@ -2,7 +2,15 @@ import logoUrl from '@/assets/logo.png'
 import { ROUTES } from '@/constants/routes'
 import { useLoggedUser } from '@/hooks/use-logged-user'
 import { useLogoutMutation } from '@/store'
-import { ActionIcon, Button, Divider, Group, Image, Menu } from '@mantine/core'
+import {
+  ActionIcon,
+  Button,
+  Divider,
+  Flex,
+  Group,
+  Image,
+  Menu,
+} from '@mantine/core'
 import {
   IconBuildingStore,
   IconLayoutDashboard,
@@ -29,16 +37,27 @@ export function Topbar() {
   }
 
   return (
-    <Group h="100%" px="md" justify="space-between">
+    <Group h="100%" px="md" justify="space-between" wrap="nowrap">
       <Link
         to={ROUTES.CATALOG}
         aria-label={t('appName')}
-        style={{ display: 'inline-flex', alignItems: 'center' }}
+        style={{ display: 'inline-flex', alignItems: 'center', minWidth: 0 }}
       >
-        <Image src={logoUrl} alt={t('appName')} h={74} w="auto" fit="contain" />
+        <Image
+          src={logoUrl}
+          alt={t('appName')}
+          h={{ base: 44, xs: 92 }}
+          w="auto"
+          fit="contain"
+        />
       </Link>
 
-      <Group gap="xs">
+      <Flex
+        align="center"
+        gap={{ base: 4, xs: 'xs' }}
+        wrap="nowrap"
+        style={{ flexShrink: 0 }}
+      >
         {isAuthenticated && isAdmin && (
           <>
             <Button
@@ -56,6 +75,20 @@ export function Topbar() {
             >
               {isInAdminPanel ? t('nav.store') : t('nav.adminPanel')}
             </Button>
+            <ActionIcon
+              component={Link}
+              to={isInAdminPanel ? ROUTES.CATALOG : ROUTES.ADMIN}
+              variant="subtle"
+              size="lg"
+              aria-label={isInAdminPanel ? t('nav.store') : t('nav.adminPanel')}
+              hiddenFrom="xs"
+            >
+              {isInAdminPanel ? (
+                <IconBuildingStore size={20} />
+              ) : (
+                <IconLayoutDashboard size={20} />
+              )}
+            </ActionIcon>
             <Divider orientation="vertical" my={8} visibleFrom="xs" />
           </>
         )}
@@ -71,6 +104,16 @@ export function Topbar() {
             >
               {t('nav.orders')}
             </Button>
+            <ActionIcon
+              component={NavLink}
+              to={ROUTES.ORDERS}
+              variant="subtle"
+              size="lg"
+              aria-label={t('nav.orders')}
+              hiddenFrom="xs"
+            >
+              <IconReceipt size={20} />
+            </ActionIcon>
             <Divider orientation="vertical" my={8} visibleFrom="xs" />
           </>
         )}
@@ -112,7 +155,7 @@ export function Topbar() {
             {t('nav.login')}
           </Button>
         )}
-      </Group>
+      </Flex>
     </Group>
   )
 }

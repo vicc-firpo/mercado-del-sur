@@ -18,12 +18,6 @@ const authSlice = createSlice({
       state.user = action.payload.user
       writeAuth(action.payload)
     },
-    setUser: (state, action: PayloadAction<User>) => {
-      state.user = action.payload
-      if (state.token) {
-        writeAuth({ accessToken: state.token, user: action.payload })
-      }
-    },
     clearAuth: (state) => {
       state.token = null
       state.user = null
@@ -32,5 +26,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { setAuth, setUser, clearAuth } = authSlice.actions
+export const { setAuth, clearAuth } = authSlice.actions
 export const authReducer = authSlice.reducer

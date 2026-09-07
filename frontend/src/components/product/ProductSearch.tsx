@@ -1,13 +1,13 @@
-import { TextInput } from '@mantine/core'
+import { TextInput, type TextInputProps } from '@mantine/core'
 import { IconSearch } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
-interface ProductSearchProps {
+interface ProductSearchProps extends Omit<TextInputProps, 'onChange' | 'value'> {
   value: string
   onChange: (value: string) => void
 }
 
-export function ProductSearch({ value, onChange }: ProductSearchProps) {
+export function ProductSearch({ value, onChange, ...props }: ProductSearchProps) {
   const { t } = useTranslation('catalog')
 
   return (
@@ -19,6 +19,7 @@ export function ProductSearch({ value, onChange }: ProductSearchProps) {
       aria-label={t('searchPlaceholder')}
       value={value}
       onChange={(event) => onChange(event.currentTarget.value)}
+      {...props}
     />
   )
 }

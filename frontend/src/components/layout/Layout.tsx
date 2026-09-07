@@ -6,7 +6,7 @@ import { Outlet } from 'react-router-dom'
 export function Layout() {
   return (
     <AppShell
-      header={{ height: 80 }}
+      header={{ height: { base: 64, xs: 100 } }}
       padding="md"
       styles={{ main: { display: 'flex', flexDirection: 'column' } }}
     >

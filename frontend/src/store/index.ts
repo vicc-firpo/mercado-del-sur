@@ -9,7 +9,6 @@ import { authApi } from './apis/auth-api'
 import { cartApi } from './apis/cart-api'
 import { ordersApi } from './apis/orders-api'
 import { productsApi } from './apis/products-api'
-import { usersApi } from './apis/users-api'
 import { authReducer } from './slices/auth-slice'
 
 export const store = configureStore({
@@ -19,15 +18,13 @@ export const store = configureStore({
     [productsApi.reducerPath]: productsApi.reducer,
     [cartApi.reducerPath]: cartApi.reducer,
     [ordersApi.reducerPath]: ordersApi.reducer,
-    [usersApi.reducerPath]: usersApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
       .concat(authApi.middleware)
       .concat(productsApi.middleware)
       .concat(cartApi.middleware)
-      .concat(ordersApi.middleware)
-      .concat(usersApi.middleware),
+      .concat(ordersApi.middleware),
 })
 
 setupListeners(store.dispatch)
@@ -39,7 +36,6 @@ export const useAppDispatch: () => AppDispatch = useDispatch
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
 export {
-  useChangePasswordMutation,
   useLoginMutation,
   useLogoutMutation,
   useRegisterMutation,
@@ -65,11 +61,4 @@ export {
 
 export { useGetMyOrdersQuery, useGetOrderByIdQuery } from './apis/orders-api'
 
-export {
-  useDeleteUserMutation,
-  useGetUserByIdQuery,
-  useGetUsersQuery,
-  useUpdateUserMutation,
-} from './apis/users-api'
-
-export { clearAuth, setAuth, setUser } from './slices/auth-slice'
+export { clearAuth, setAuth } from './slices/auth-slice'

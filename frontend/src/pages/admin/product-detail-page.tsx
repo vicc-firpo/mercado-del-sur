@@ -29,7 +29,6 @@ import {
   IconDotsVertical,
   IconPencil,
   IconPhoto,
-  IconToggleLeft,
   IconTrash,
 } from '@tabler/icons-react'
 import { useState } from 'react'
@@ -221,7 +220,6 @@ export default function AdminProductDetailPage() {
         <Group gap="sm" wrap="wrap" justify="flex-end">
           <Button
             variant="light"
-            leftSection={<IconToggleLeft size={16} />}
             loading={isTogglingStatus}
             onClick={handleToggleStatus}
           >

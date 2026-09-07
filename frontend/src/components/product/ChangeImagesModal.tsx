@@ -26,7 +26,6 @@ const ACCEPTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
 
 interface ChangeImagesModalProps {
-  /** Product whose images are being edited, or `null` when the modal is closed. */
   product: Product | null
   onClose: () => void
 }
@@ -154,7 +153,9 @@ function ChangeImagesModalBody({
       </Dropzone>
 
       <Group justify="flex-end">
-        <Button onClick={onClose}>{t('products.images.done')}</Button>
+        <Button variant="light" onClick={onClose}>
+          {t('products.images.done')}
+        </Button>
       </Group>
     </Stack>
   )
