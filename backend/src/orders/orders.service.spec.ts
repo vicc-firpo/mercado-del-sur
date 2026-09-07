@@ -20,6 +20,7 @@ type MockedOrdersRepository = {
   save: jest.Mock;
   find: jest.Mock;
   findOne: jest.Mock;
+  update: jest.Mock;
 };
 
 describe('OrdersService', () => {
@@ -37,6 +38,7 @@ describe('OrdersService', () => {
             save: jest.fn(),
             find: jest.fn(),
             findOne: jest.fn(),
+            update: jest.fn(),
           },
         },
       ],
@@ -102,7 +104,7 @@ describe('OrdersService', () => {
   });
 
   describe('findMyOrders', () => {
-    it('returns a summary per order ordered by newest first', async () => {
+    it('returns a paid-only summary per order ordered by newest first', async () => {
       const userId = faker.string.uuid();
       const order = buildOrder({
         userId,
@@ -114,13 +116,80 @@ describe('OrdersService', () => {
       const result = await service.findMyOrders(userId);
 
       expect(ordersRepository.find).toHaveBeenCalledWith({
-        where: { userId },
+        where: { userId, isPaid: true },
         relations: { items: true },
         order: { createdAt: 'DESC' },
       });
       expect(result).toEqual([
-        { id: order.id, total: 30, itemCount: 2, createdAt: order.createdAt },
+        {
+          id: order.id,
+          total: 30,
+          itemCount: 2,
+          isPaid: true,
+          createdAt: order.createdAt,
+        },
       ]);
+    });
+  });
+
+  describe('markAsPaid', () => {
+    it('flips an unpaid order and reports the transition', async () => {
+      ordersRepository.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.markAsPaid('order-1');
+
+      expect(ordersRepository.update).toHaveBeenCalledWith(
+        { id: 'order-1', isPaid: false },
+        { isPaid: true },
+      );
+      expect(result).toBe(true);
+    });
+
+    it('reports no transition when the order was already paid', async () => {
+      ordersRepository.update.mockResolvedValue({ affected: 0 });
+
+      await expect(service.markAsPaid('order-1')).resolves.toBe(false);
+    });
+  });
+
+  describe('attachCheckoutSession', () => {
+    it('stores the Stripe session id on the order', async () => {
+      ordersRepository.update.mockResolvedValue({ affected: 1 });
+
+      await service.attachCheckoutSession('order-1', 'cs_test_123');
+
+      expect(ordersRepository.update).toHaveBeenCalledWith(
+        { id: 'order-1' },
+        { stripeCheckoutSessionId: 'cs_test_123' },
+      );
+    });
+  });
+
+  describe('findById', () => {
+    it('looks up an order without scoping by user', async () => {
+      const order = buildOrder();
+      ordersRepository.findOne.mockResolvedValue(order);
+
+      const result = await service.findById(order.id);
+
+      expect(ordersRepository.findOne).toHaveBeenCalledWith({
+        where: { id: order.id },
+      });
+      expect(result).toBe(order);
+    });
+  });
+
+  describe('findByCheckoutSessionId', () => {
+    it('looks up an order by its Stripe checkout session id', async () => {
+      const order = buildOrder({ stripeCheckoutSessionId: 'cs_test_123' });
+      ordersRepository.findOne.mockResolvedValue(order);
+
+      const result = await service.findByCheckoutSessionId('cs_test_123');
+
+      expect(ordersRepository.findOne).toHaveBeenCalledWith({
+        where: { stripeCheckoutSessionId: 'cs_test_123' },
+      });
+      expect(result).toBe(order);
     });
   });
 

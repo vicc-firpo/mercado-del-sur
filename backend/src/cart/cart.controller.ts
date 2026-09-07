@@ -7,14 +7,12 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Post,
   Put,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthUser } from '../auth/jwt-payload.interface';
-import { OrderDetailDto } from '../orders/dto/order-detail.dto';
 import { CartService } from './cart.service';
 import { CartItemDto } from './dto/cart-item.dto';
 import { CartDto } from './dto/cart.dto';
@@ -46,10 +44,5 @@ export class CartController {
     @CurrentUser() user: AuthUser,
   ): Promise<void> {
     return this.cartService.removeItem(user.userId, productId);
-  }
-
-  @Post('checkout')
-  checkout(@CurrentUser() user: AuthUser): Promise<OrderDetailDto> {
-    return this.cartService.checkout(user.userId);
   }
 }

@@ -41,6 +41,7 @@
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "stripe": "^22.6.1",
     "typeorm": "^1.1.1"
   },
   "devDependencies": {
@@ -85,7 +86,7 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "transformIgnorePatterns": [
-      "/node_modules/(?!(@nestjs/typeorm|@nestjs/passport)/)"
+      "/node_modules/(?!(@nestjs/typeorm|@nestjs/passport|@nestjs/config)/)"
     ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"

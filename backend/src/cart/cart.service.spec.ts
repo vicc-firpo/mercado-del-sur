@@ -3,8 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 import { buildCartItem } from '../test/factories/cart-item.factory';
 import { buildCart } from '../test/factories/cart.factory';
-import { buildOrder } from '../test/factories/order.factory';
-import { buildOrderItem } from '../test/factories/order-item.factory';
 import { buildProduct } from '../test/factories/product.factory';
 
 jest.mock('@nestjs/typeorm', () => ({
@@ -16,8 +14,6 @@ import { CartItemsRepository } from './cart-items.repository';
 import { CartService } from './cart.service';
 import { CartsRepository } from './carts.repository';
 import { CartItemNotFoundException } from './exceptions/cart-item-not-found.exception';
-import { EmptyCartException } from './exceptions/empty-cart.exception';
-import { OrdersService } from '../orders/orders.service';
 import { Product } from '../products/entities/product.entity';
 import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
 
@@ -37,16 +33,11 @@ type MockedProductsRepository = {
   findOne: jest.Mock;
 };
 
-type MockedOrdersService = {
-  createOrder: jest.Mock;
-};
-
 describe('CartService', () => {
   let service: CartService;
   let cartsRepository: MockedCartsRepository;
   let cartItemsRepository: MockedCartItemsRepository;
   let productsRepository: MockedProductsRepository;
-  let ordersService: MockedOrdersService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -74,12 +65,6 @@ describe('CartService', () => {
             findOne: jest.fn(),
           },
         },
-        {
-          provide: OrdersService,
-          useValue: {
-            createOrder: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
@@ -90,7 +75,6 @@ describe('CartService', () => {
     productsRepository = module.get<MockedProductsRepository>(
       getRepositoryToken(Product),
     );
-    ordersService = module.get<MockedOrdersService>(OrdersService);
   });
 
   afterEach(() => {
@@ -206,42 +190,42 @@ describe('CartService', () => {
     });
   });
 
-  describe('checkout', () => {
-    it('creates an order from the cart items, clears the cart and returns the order detail', async () => {
-      const item = buildCartItem({
-        product: buildProduct({ price: '10.00' }),
-        quantity: 2,
-      });
-      const cart = buildCart({ items: [item] });
-      const order = buildOrder({
-        userId: cart.userId,
-        total: '20.00',
-        items: [buildOrderItem({ unitPrice: '10.00', quantity: 2 })],
-      });
+  describe('getCartForCheckout', () => {
+    it('returns the cart entity for the user', async () => {
+      const cart = buildCart({ items: [buildCartItem()] });
       cartsRepository.findOneByUserWithItems.mockResolvedValue(cart);
-      ordersService.createOrder.mockResolvedValue(order);
+
+      const result = await service.getCartForCheckout(cart.userId);
+
+      expect(result).toBe(cart);
+    });
+
+    it('throws when the user has no cart', async () => {
+      cartsRepository.findOneByUserWithItems.mockResolvedValue(null);
+
+      await expect(
+        service.getCartForCheckout(faker.string.uuid()),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('clearCart', () => {
+    it('deletes every item of the user cart, keeping the cart', async () => {
+      const cart = buildCart({ items: [buildCartItem()] });
+      cartsRepository.findOneByUserWithItems.mockResolvedValue(cart);
       cartItemsRepository.delete.mockResolvedValue({ affected: 1 });
 
-      const result = await service.checkout(cart.userId);
+      await service.clearCart(cart.userId);
 
-      expect(ordersService.createOrder).toHaveBeenCalledWith(cart.userId, [
-        item,
-      ]);
       expect(cartItemsRepository.delete).toHaveBeenCalledWith({
         cartId: cart.id,
       });
-      expect(result.id).toBe(order.id);
-      expect(result.total).toBe(20);
     });
 
-    it('throws EmptyCartException when the cart has no items', async () => {
-      const cart = buildCart({ items: [] });
-      cartsRepository.findOneByUserWithItems.mockResolvedValue(cart);
+    it('throws when the user has no cart', async () => {
+      cartsRepository.findOneByUserWithItems.mockResolvedValue(null);
 
-      await expect(service.checkout(cart.userId)).rejects.toThrow(
-        EmptyCartException,
-      );
-      expect(ordersService.createOrder).not.toHaveBeenCalled();
+      await expect(service.clearCart(faker.string.uuid())).rejects.toThrow();
       expect(cartItemsRepository.delete).not.toHaveBeenCalled();
     });
   });

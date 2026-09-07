@@ -28,11 +28,39 @@ export class OrdersService {
 
   async findMyOrders(userId: string): Promise<OrderSummaryDto[]> {
     const orders = await this.ordersRepository.find({
-      where: { userId },
+      where: { userId, isPaid: true },
       relations: { items: true },
       order: { createdAt: 'DESC' },
     });
     return orders.map((order) => OrderSummaryDto.fromEntity(order));
+  }
+
+  findById(id: string): Promise<Order | null> {
+    return this.ordersRepository.findOne({ where: { id } });
+  }
+
+  findByCheckoutSessionId(sessionId: string): Promise<Order | null> {
+    return this.ordersRepository.findOne({
+      where: { stripeCheckoutSessionId: sessionId },
+    });
+  }
+
+  async attachCheckoutSession(
+    orderId: string,
+    sessionId: string,
+  ): Promise<void> {
+    await this.ordersRepository.update(
+      { id: orderId },
+      { stripeCheckoutSessionId: sessionId },
+    );
+  }
+
+  async markAsPaid(orderId: string): Promise<boolean> {
+    const result = await this.ordersRepository.update(
+      { id: orderId, isPaid: false },
+      { isPaid: true },
+    );
+    return (result.affected ?? 0) > 0;
   }
 
   async findMyOrderDetail(

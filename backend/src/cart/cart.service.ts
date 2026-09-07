@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { OrderDetailDto } from '../orders/dto/order-detail.dto';
-import { OrdersService } from '../orders/orders.service';
 import { Product } from '../products/entities/product.entity';
 import { ProductNotFoundException } from '../products/exceptions/product-not-found.exception';
 import { CartItemsRepository } from './cart-items.repository';
@@ -12,7 +10,6 @@ import { CartDto } from './dto/cart.dto';
 import { Cart } from './entities/cart.entity';
 import { CartItem } from './entities/cart-item.entity';
 import { CartItemNotFoundException } from './exceptions/cart-item-not-found.exception';
-import { EmptyCartException } from './exceptions/empty-cart.exception';
 
 @Injectable()
 export class CartService {
@@ -21,7 +18,6 @@ export class CartService {
     private readonly cartItemsRepository: CartItemsRepository,
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
-    private readonly ordersService: OrdersService,
   ) {}
 
   async createCartForUser(userId: string): Promise<Cart> {
@@ -62,15 +58,13 @@ export class CartService {
     }
   }
 
-  async checkout(userId: string): Promise<OrderDetailDto> {
+  getCartForCheckout(userId: string): Promise<Cart> {
+    return this.getCartOrFail(userId);
+  }
+
+  async clearCart(userId: string): Promise<void> {
     const cart = await this.getCartOrFail(userId);
-    if (!cart.items?.length) {
-      throw new EmptyCartException();
-    }
-    this.processPayment();
-    const order = await this.ordersService.createOrder(userId, cart.items);
     await this.cartItemsRepository.delete({ cartId: cart.id });
-    return OrderDetailDto.fromEntity(order);
   }
 
   private async getCartOrFail(userId: string): Promise<Cart> {
@@ -94,10 +88,4 @@ export class CartService {
     }
     return item;
   }
-
-  /**
-   * Stub: any checkout attempt is accepted as a valid payment for now.
-   * TODO(future): integrate a real payment gateway and persist the purchase record.
-   */
-  private processPayment(): void {}
 }

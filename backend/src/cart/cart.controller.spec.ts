@@ -15,7 +15,6 @@ type MockedCartService = {
   getCart: jest.Mock;
   addItem: jest.Mock;
   removeItem: jest.Mock;
-  checkout: jest.Mock;
 };
 
 describe('CartController', () => {
@@ -32,7 +31,6 @@ describe('CartController', () => {
             getCart: jest.fn(),
             addItem: jest.fn(),
             removeItem: jest.fn(),
-            checkout: jest.fn(),
           },
         },
       ],
@@ -77,21 +75,5 @@ describe('CartController', () => {
     await controller.removeItem(productId, user);
 
     expect(cartService.removeItem).toHaveBeenCalledWith(user.userId, productId);
-  });
-
-  it('checkout delegates to the service and returns the created order detail', async () => {
-    const user = buildAuthUser();
-    const orderDetail = {
-      id: faker.string.uuid(),
-      total: 20,
-      createdAt: new Date(),
-      items: [],
-    };
-    cartService.checkout.mockResolvedValue(orderDetail);
-
-    const result = await controller.checkout(user);
-
-    expect(cartService.checkout).toHaveBeenCalledWith(user.userId);
-    expect(result).toBe(orderDetail);
   });
 });

@@ -25,6 +25,17 @@ export class Order {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   total: string;
 
+  @Column({ name: 'is_paid', default: false })
+  isPaid: boolean;
+
+  @Column({
+    name: 'stripe_checkout_session_id',
+    type: 'varchar',
+    nullable: true,
+    unique: true,
+  })
+  stripeCheckoutSessionId: string | null;
+
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
 

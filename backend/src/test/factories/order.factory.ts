@@ -6,6 +6,8 @@ export function buildOrder(overrides: Partial<Order> = {}): Order {
   order.id = faker.string.uuid();
   order.userId = faker.string.uuid();
   order.total = faker.commerce.price();
+  order.isPaid = true;
+  order.stripeCheckoutSessionId = null;
   order.items = [];
   order.createdAt = faker.date.past();
   return Object.assign(order, overrides);
