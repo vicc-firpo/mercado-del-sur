@@ -10,19 +10,16 @@ jest.mock('@nestjs/typeorm', () => ({
 }));
 import { faker } from '@faker-js/faker';
 import { buildUser } from '../test/factories/user.factory';
-import { buildAuthUser } from '../test/factories/auth-user.factory';
 import { UserDto } from '../users/dto/user.dto';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 type MockedAuthService = {
   register: jest.Mock;
   login: jest.Mock;
-  changePassword: jest.Mock;
 };
 
 describe('AuthController', () => {
@@ -38,7 +35,6 @@ describe('AuthController', () => {
           useValue: {
             register: jest.fn(),
             login: jest.fn(),
-            changePassword: jest.fn(),
           },
         },
       ],
@@ -95,21 +91,6 @@ describe('AuthController', () => {
   describe('logout', () => {
     it('returns nothing', () => {
       expect(controller.logout()).toBeUndefined();
-    });
-  });
-
-  describe('changePassword', () => {
-    it('delegates the password change to the service using the current user id', async () => {
-      const user = buildAuthUser();
-      const dto: ChangePasswordDto = {
-        currentPassword: faker.internet.password(),
-        newPassword: faker.internet.password(),
-      };
-      authService.changePassword.mockResolvedValue(undefined);
-
-      await controller.changePassword(user, dto);
-
-      expect(authService.changePassword).toHaveBeenCalledWith(user.userId, dto);
     });
   });
 });

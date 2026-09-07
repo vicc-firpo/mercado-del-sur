@@ -18,13 +18,6 @@ export class UsersRepository extends Repository<User> {
       .getOne();
   }
 
-  findByIdWithPassword(id: string): Promise<User | null> {
-    return this.createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.id = :id', { id })
-      .getOne();
-  }
-
   async saveUnique(user: User): Promise<User> {
     try {
       return await this.save(user);

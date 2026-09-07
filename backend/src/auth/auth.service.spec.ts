@@ -15,7 +15,6 @@ import { buildUser } from '../test/factories/user.factory';
 import { UserDto } from '../users/dto/user.dto';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { InvalidCredentialsException } from './exceptions/invalid-credentials.exception';
@@ -28,8 +27,6 @@ jest.mock('bcrypt', () => ({
 type MockedUsersService = {
   create: jest.Mock;
   findByEmail: jest.Mock;
-  findById: jest.Mock;
-  updatePassword: jest.Mock;
 };
 
 type MockedJwtService = {
@@ -50,8 +47,6 @@ describe('AuthService', () => {
           useValue: {
             create: jest.fn(),
             findByEmail: jest.fn(),
-            findById: jest.fn(),
-            updatePassword: jest.fn(),
           },
         },
         {
@@ -152,48 +147,6 @@ describe('AuthService', () => {
       await expect(service.login(dto)).rejects.toThrow(
         InvalidCredentialsException,
       );
-    });
-  });
-
-  describe('changePassword', () => {
-    it('updates the password when the current password matches', async () => {
-      const user = buildUser();
-      const dto: ChangePasswordDto = {
-        currentPassword: faker.internet.password(),
-        newPassword: faker.internet.password(),
-      };
-      const newPasswordHash = faker.internet.password();
-      usersService.findById.mockResolvedValue(user);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue(newPasswordHash);
-
-      await service.changePassword(user.id, dto);
-
-      expect(usersService.findById).toHaveBeenCalledWith(user.id);
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        dto.currentPassword,
-        user.password,
-      );
-      expect(bcrypt.hash).toHaveBeenCalledWith(dto.newPassword, 10);
-      expect(usersService.updatePassword).toHaveBeenCalledWith(
-        user.id,
-        newPasswordHash,
-      );
-    });
-
-    it('throws InvalidCredentialsException when the current password does not match', async () => {
-      const user = buildUser();
-      const dto: ChangePasswordDto = {
-        currentPassword: faker.internet.password(),
-        newPassword: faker.internet.password(),
-      };
-      usersService.findById.mockResolvedValue(user);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
-
-      await expect(service.changePassword(user.id, dto)).rejects.toThrow(
-        InvalidCredentialsException,
-      );
-      expect(usersService.updatePassword).not.toHaveBeenCalled();
     });
   });
 });

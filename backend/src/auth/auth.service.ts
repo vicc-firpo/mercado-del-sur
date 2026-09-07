@@ -5,7 +5,6 @@ import { UserDto } from '../users/dto/user.dto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { InvalidCredentialsException } from './exceptions/invalid-credentials.exception';
@@ -35,15 +34,6 @@ export class AuthService {
       accessToken: this.issueToken(user),
       user: UserDto.fromEntity(user),
     };
-  }
-
-  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
-    const user = await this.usersService.findById(userId);
-    if (!(await bcrypt.compare(dto.currentPassword, user.password))) {
-      throw new InvalidCredentialsException();
-    }
-    const passwordHash = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
-    await this.usersService.updatePassword(userId, passwordHash);
   }
 
   private issueToken(user: User | UserDto): string {

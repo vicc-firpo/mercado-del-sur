@@ -1,5 +1,4 @@
 import { DataSource, QueryFailedError, SelectQueryBuilder } from 'typeorm';
-import { faker } from '@faker-js/faker';
 import { buildUser } from '../test/factories/user.factory';
 import { User } from './entities/user.entity';
 import { EmailAlreadyInUseException } from './exceptions/email-already-in-use.exception';
@@ -57,17 +56,6 @@ describe('UsersRepository', () => {
       expect(queryBuilder.where).toHaveBeenCalledWith('user.email = :email', {
         email: user.email,
       });
-    });
-  });
-
-  describe('findByIdWithPassword', () => {
-    it('selects the hidden password column and filters by id', async () => {
-      const id = faker.string.uuid();
-
-      await repository.findByIdWithPassword(id);
-
-      expect(queryBuilder.addSelect).toHaveBeenCalledWith('user.password');
-      expect(queryBuilder.where).toHaveBeenCalledWith('user.id = :id', { id });
     });
   });
 
