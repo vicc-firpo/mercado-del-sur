@@ -14,8 +14,6 @@
   "shipping": "Envío",
   "shippingToBeCalculated": "Gratis",
   "remove": "Quitar",
-  "removedTitle": "Producto quitado",
-  "removed": "Quitaste {{name}} del carrito.",
   "updateError": "No se pudo actualizar la cantidad.",
   "removeError": "No se pudo quitar el producto.",
   "loadError": "No se pudo cargar el carrito.",

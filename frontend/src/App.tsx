@@ -1,19 +1,19 @@
 import { AdminRoute } from '@/components/AdminRoute'
-import { StoreLayout } from '@/components/layouts/store-layout/StoreLayout'
+import { Layout } from '@/components/layout/Layout'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { ROUTES } from '@/constants/routes'
-import AdminProductDetailPage from '@/pages/admin-product-detail'
-import AdminProductsPage from '@/pages/admin-products'
-import CartPage from '@/pages/cart'
-import CatalogPage from '@/pages/catalog'
-import CheckoutCancelPage from '@/pages/checkout-cancel'
-import CheckoutSuccessPage from '@/pages/checkout-success'
-import LoginPage from '@/pages/login'
-import NotFoundPage from '@/pages/not-found'
-import OrderDetailPage from '@/pages/order-detail'
-import OrdersPage from '@/pages/orders'
-import ProductDetailPage from '@/pages/product-detail'
-import RegisterPage from '@/pages/register'
+import AdminProductDetailPage from '@/pages/admin/product-detail-page'
+import AdminProductsPage from '@/pages/admin/products-page'
+import LoginPage from '@/pages/auth/login-page'
+import RegisterPage from '@/pages/auth/register-page'
+import CartPage from '@/pages/cart/cart-page'
+import CheckoutCancelPage from '@/pages/cart/checkout-cancel-page'
+import CheckoutSuccessPage from '@/pages/cart/checkout-success-page'
+import NotFoundPage from '@/pages/not-found-page'
+import OrderDetailPage from '@/pages/orders/order-detail-page'
+import OrdersPage from '@/pages/orders/orders-page'
+import CatalogPage from '@/pages/products/products-page'
+import ProductDetailPage from '@/pages/products/product-detail-page'
 import { store } from '@/store'
 import { theme } from '@/theme'
 import { MantineProvider } from '@mantine/core'
@@ -30,7 +30,7 @@ function App() {
       <Provider store={store}>
         <BrowserRouter>
           <Routes>
-            <Route element={<StoreLayout />}>
+            <Route element={<Layout />}>
               <Route path={ROUTES.CATALOG} element={<CatalogPage />} />
               <Route
                 path={ROUTES.PRODUCT_DETAIL}
